@@ -1,0 +1,7 @@
+module.exports = {
+    base : 'https://qa.crimsonhexagon.com/api/',
+    params : '?version=3',
+    user : 'api user',
+    pass : 'password"
+    debug : true
+};
