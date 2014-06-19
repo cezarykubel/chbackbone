@@ -2,7 +2,29 @@ var AppRouter = Backbone.Router.extend({
 
     routes: {
         ""                  : "home",
-        "about"             : "about"
+        "about"             : "about",
+        "monitors"          : "list"
+    },
+
+    initialize: function () {
+        this.headerView = new HeaderView();
+        $('.header').html(this.headerView.el);
+    },
+
+    home: function (id) {
+        if (!this.homeView) {
+            this.homeView = new HomeView();
+        }
+        $('#content').html(this.homeView.el);
+        this.headerView.selectMenuItem('home-menu');
+    },
+
+    list: function (id) {
+        if (!this.monitorListView) {
+            this.monitorListView = new MonitorListView();
+        }
+        $('#content').html(this.monitorListView.el);
+        this.headerView.selectMenuItem('list-menu');
     },
 
     about: function () {
@@ -15,7 +37,7 @@ var AppRouter = Backbone.Router.extend({
 
 });
 
-utils.loadTemplate(['AboutView'], function() {
+utils.loadTemplate(['HeaderView', 'HomeView', 'AboutView'], function() {
     app = new AppRouter();
     Backbone.history.start();
 });
