@@ -17,8 +17,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // wrap crimson hexagon API
-app.get('/api/', chClient.wrap);
-app.post('/api/', chClient.wrap);
+app.get('/api*', chClient.wrap);
+app.post('/api*', chClient.wrap);
 
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {
