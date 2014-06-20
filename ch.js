@@ -13,7 +13,7 @@ CH.prototype.auth = function(){
     console.log('Attempting to authenticate...');
 
     // Authenticate!
-    this.get('authenticate', { username : config.user, password : config.pass }, finish);
+    this.fetch('authenticate', { username : config.user, password : config.pass }, finish);
 
     function finish(obj){
 
@@ -34,7 +34,7 @@ CH.prototype.auth = function(){
 }
 
 // Get data from an endpoint
-CH.prototype.get = function(endpoint, params, cb){
+CH.prototype.fetch = function(endpoint, params, cb){
 
     var string = config.params,
         auth = config.auth || '',
@@ -67,7 +67,7 @@ CH.prototype.get = function(endpoint, params, cb){
         try {
            var obj = JSON.parse(result);
         } catch(e){
-            throw new Error('Couldn\'t parse response: ' + response.result);
+            cb('Couldn\'t parse response: ' + response);
         }
 
         if (obj){
@@ -77,7 +77,11 @@ CH.prototype.get = function(endpoint, params, cb){
 }
 
 CH.prototype.wrap = function(req, res){
-  console.log(req.url);
+    var endpoint = req.url.substr(5, req.url.length).split('?')[0];
+    this.fetch(endpoint, req.query, function(result){
+        res.send(result);
+    });
+
 };
 
 module.exports = new CH();
