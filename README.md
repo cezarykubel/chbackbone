@@ -18,7 +18,7 @@ Usage:
 
 Open up a (non-cygwin) terminal and navigate to your chbackbone directory.  Then type:
 
-    node www/bin
+    node bin/www
 
 You can minimize the terminal, or keep it open to look at the useful output.  Chbackbone will now be available at http://localhost:3002 .
 
