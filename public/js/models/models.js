@@ -23,4 +23,36 @@ window.MonitorCollection = Backbone.Collection.extend({
 	parse: function(data){
 		return data.monitors;
 	}
+});
+
+window.Post = Backbone.Model.extend({
+	defaults: {
+		url: '',
+		data:'',
+		author: '',
+		title: '',
+		location: '',
+		language: '',
+		type: '',
+		categoryScores: [],
+		authorKlout: 0,
+		authorPosts: 0,
+		authorsFollowing: 0,
+		authorsFollowers: 0,
+		authorGender: ''
+	}
+});
+
+window.PostCollection = Backbone.Collection.extend({
+	model: Post,
+	postID: 0,
+	url: "/api/monitor/posts?id=" + this.postID,
+	initialize: function() {
+		console.log(this.url);
+		this.fetch();
+	},
+	parse: function(data){
+		
+		return data.posts;
+	}
 })
