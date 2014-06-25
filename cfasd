@@ -1,0 +1,65 @@
+commit 54306335e7151f05fbb1f268669f4ee44da7c844
+Author: Cezary Kubel <fullredesigns@gmail.com>
+Date:   Wed Jun 25 10:39:59 2014 -0400
+
+    Updated Details Page.  Doesn't fully work
+
+commit 384bacceecb6f2ae2be6c901f9a6ca2ee3794d9f
+Author: Cezary Kubel <fullredesigns@gmail.com>
+Date:   Tue Jun 24 13:23:12 2014 -0400
+
+    Browse Tab now lists all monitors.  Template's broken.
+
+commit 7c264b977872d06c5313153873980a2aef8b4688
+Author: Cezary Kubel <fullredesigns@gmail.com>
+Date:   Fri Jun 20 12:04:21 2014 -0400
+
+    Fixed README
+
+commit 277a88e81295b36af782a74ae402377191f5c2d7
+Author: Cezary Kubel <fullredesigns@gmail.com>
+Date:   Fri Jun 20 11:54:03 2014 -0400
+
+    Merge branch 'master', remote-tracking branch 'upstream/master'
+
+commit 9a3ff39456aa503b8d32c4621a53828e235c1fcd
+Author: Alexander Ose <alex@crimsonhexagon.com>
+Date:   Fri Jun 20 11:36:52 2014 -0400
+
+    add readme
+
+commit f4c3540c3a59a869ebed376f0f9ac482d27e4d10
+Author: Alexander Ose <alex@crimsonhexagon.com>
+Date:   Fri Jun 20 10:22:43 2014 -0400
+
+    wrap crimson api properly
+
+commit 2bdd7dffdf0a007528c98d0b1ff74c699357716a
+Author: Alexander Ose <alex@crimsonhexagon.com>
+Date:   Thu Jun 19 16:03:21 2014 -0400
+
+    make things work
+
+commit 89b69de25f8923a278b57d7cfd34efe9b9cc1704
+Author: Alexander Ose <alex@crimsonhexagon.com>
+Date:   Thu Jun 19 15:53:05 2014 -0400
+
+    adding files
+
+commit e5ecbdbca5e98aaec5d94445ce5d0c6deb315313
+Author: Alexander Ose <alex@crimsonhexagon.com>
+Date:   Thu Jun 19 14:57:57 2014 -0400
+
+    adding files
+
+commit 88feeda26db29d10adc6e207416f58360ccc82a1
+Author: Alexander Ose <alex@crimsonhexagon.com>
+Date:   Thu Jun 19 14:57:49 2014 -0400
+
+    initial
+
+commit 49a9a965d9a260e8461573a6a85b67204dee463c
+Author: Alexander Ose <alex@crimsonhexagon.com>
+Date:   Thu Jun 19 14:56:18 2014 -0400
+
+    Initial commit.
