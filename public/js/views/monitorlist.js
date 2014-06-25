@@ -5,15 +5,14 @@ window.MonitorListView = Backbone.View.extend({
     },
 
     render: function () {
-        $(this.el).html("<ul class='thumbnails'></ul>");
+        $(this.el).html(this.template());
 
         var len = monitorCollection.length;
-
+        
         for(var i = 0; i < len; i++) {
 
-            $('.thumbnails', this.el)
-                .append(new MonitorListItemView({model: monitorCollection.at(i)})
-                .render().el);
+            $('#allMonitors', this.el)
+                .append(new MonitorListItemView({model: monitorCollection.at(i)}).render().el);
         }
 
         return this;
@@ -23,14 +22,11 @@ window.MonitorListView = Backbone.View.extend({
 window.MonitorListItemView = Backbone.View.extend({
 
     initialize: function () {
-        this.model.bind("change", this.render, this);
-        this.model.bind("destroy", this.close, this);
+        this.render();
     },
 
-    template: _.template("<li class='thumbnail'><%= name %></li>"),
-
     render: function () {
-        $(this.el).html(this.template(this.model.attributes));
+        this.setElement(this.template(this.model.toJSON()));
         return this;
     }
 

@@ -1,6 +1,6 @@
 window.Monitor = Backbone.Model.extend({
 	urlRoot: "/monitors",
-	idAttribute: "_id",
+	idAttribute: "id",
 
 	defaults: {
 		id: '',

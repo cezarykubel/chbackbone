@@ -42,3 +42,7 @@ a.plain:hover {
     padding-top: 4px !important;
     padding-bottom: 4px !important;
 }
+
+.table tbody th {
+    font-weight: initial;
+}

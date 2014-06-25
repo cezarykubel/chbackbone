@@ -1,1 +1,47 @@
-<li class="thumbnail">TEst</li>
+<div class="row-fluid">
+    <div class="span8">
+        
+    	<h3>All Monitors</h3>
+
+    	<table class="table">
+    		<thead><tr>
+
+    			<th>ID</th>
+    			<th>Name</th>
+    			<th>Description</th>
+    			<th>Type</th>
+    			<th>Enabled</th>
+    			<th>Details</th>
+
+    		</tr></thead>
+    		<tbody id="allMonitors">
+    		</tbody>
+    	</table>
+
+    </div>
+
+    <div class="span4">
+        <h3>Filter</h3>
+
+        <label for="byID" class="col-sm-2 control-label">By ID</label>
+        <input type="text" class="form-control" placeholder="Enter ID">
+
+        <label for="byName" class="col-sm-2 control-label">By Monitor Name</label>
+        <input type="text" class="form-control" placeholder="Enter Monitor">
+
+        <label for="type" class="col-sm-2 control-label">Type</label>
+        <select class="form-control">
+          <option>All</option>
+          <option>Buzz</option>
+          <option>Opinion</option>
+        </select>
+
+        <label for="enabled" class="col-sm-2 control-label">Enabled</label>
+        <select class="form-control">
+          <option>All</option>
+          <option>True</option>
+          <option>False</option>
+        </select>
+
+    </div>
+</div>
