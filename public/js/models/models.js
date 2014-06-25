@@ -45,14 +45,13 @@ window.Post = Backbone.Model.extend({
 
 window.PostCollection = Backbone.Collection.extend({
 	model: Post,
-	postID: 0,
-	url: "/api/monitor/posts?id=" + this.postID,
-	initialize: function() {
-		console.log(this.url);
+	url: null,
+	initialize: function(options) {
+		this.postID = options.postID;
+		this.url = "/api/monitor/posts?id=" + options.postID;
 		this.fetch();
 	},
 	parse: function(data){
-		
 		return data.posts;
 	}
 })

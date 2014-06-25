@@ -5,7 +5,6 @@ window.DetailsView = Backbone.View.extend({
     },
 
     render: function () {
-        console.log(this.posts);
         $(this.el).html(this.template(this.model.toJSON()));
         return this;
     }

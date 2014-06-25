@@ -40,7 +40,6 @@ var AppRouter = Backbone.Router.extend({
 
     details: function (id) {
         var monitor = monitorCollection.get(id);
-        console.log("ID:" + id);
         var postCollection = new PostCollection({postID: id});
         $("#content").html(new DetailsView({model: monitor, posts: postCollection}).el)
     }
