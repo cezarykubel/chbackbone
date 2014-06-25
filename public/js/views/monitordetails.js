@@ -27,17 +27,4 @@ window.DetailsItemView = Backbone.View.extend({
         this.setElement(this.template(this.model.toJSON()));
         return this;
     },
-
-    events: {
-        "change"        : "change"
-    },
-
-    change: function (event) {
-        var target = event.target;
-        var change = {};
-        change[target.name] = target.value;
-        this.model.set(change);
-    }
-
-
 });
