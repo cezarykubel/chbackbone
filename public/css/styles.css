@@ -46,3 +46,12 @@ a.plain:hover {
 .table tbody th {
     font-weight: initial;
 }
+
+h3 {
+    line-height: 25px;
+}
+
+p label {
+    width: 40%;
+    float: left;
+}

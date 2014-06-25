@@ -39,10 +39,10 @@ var AppRouter = Backbone.Router.extend({
     },
 
     details: function (id) {
-        if (!this.detailsView) {
-            this.detailsView = new DetailsView({id:id});
-        }
-        $('#content').html(this.detailsView.el);
+        console.log(id);
+        var monitor = monitorCollection.get(id);
+        console.log(monitor);
+        $("#content").html(new DetailsView({model: monitor}).el)
     }
 
 });
@@ -54,8 +54,7 @@ utils.loadTemplate(
         'AboutView', 
         'MonitorListView',
         'MonitorListItemView',
-        'DetailsView',
-        'DetailsItemView'
+        'DetailsView'
     ], 
     function() {
     app = new AppRouter();

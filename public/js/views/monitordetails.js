@@ -5,26 +5,8 @@ window.DetailsView = Backbone.View.extend({
     },
 
     render: function () {
-        $(this.el).html(this.template());
-        console.log(this.id);
-        $('#monitorDetails', this.el)
-            .append(new DetailsItemView({model: monitorCollection.get(this.id)})
-            .render().el);
-        
+        $(this.el).html(this.template(this.model.toJSON()));
         return this;
     }
 
-});
-
-window.DetailsItemView = Backbone.View.extend({
-
-    initialize: function () {
-        this.render();
-    },
-
-    render: function () {
-        console.log(this.model.toJSON());
-        this.setElement(this.template(this.model.toJSON()));
-        return this;
-    },
 });
