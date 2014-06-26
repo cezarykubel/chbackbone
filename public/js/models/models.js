@@ -1,3 +1,24 @@
+function formatDate(date) {
+	var months = ["January", "February", "March", "April", 
+				  "May", "June", "July", "August", "September", 
+				  "October", "November", "December"];
+
+	var hours = date.getHours();
+	var minutes = date.getMinutes();
+	var AMPM = "AM";
+	if(hours > 12) {
+		hours = hours - 12;
+		AMPM = "PM";
+	}
+	if(minutes < 10) {
+		minutes = "0" + minutes;
+	}
+
+	return months[date.getMonth()] + " " + date.getDate() + ", " 
+			+ date.getFullYear() + " at " + hours + ":" 
+			+ minutes + " " + AMPM;
+}
+
 window.Monitor = Backbone.Model.extend({
 	urlRoot: "/monitors",
 	idAttribute: "id",
@@ -10,7 +31,15 @@ window.Monitor = Backbone.Model.extend({
 		enabled: '',
 		resultsStart: '',
 		resultsEnd: '',
+		resultsStartDisplay: '',
+		resultsEndDisplay: '',
 		tags: []
+	},
+	initialize: function() {
+		var d = new Date(this.attributes.resultsStart);
+		var d2 = new Date(this.attributes.resultsEnd);
+		this.attributes.resultsStartDisplay = formatDate(d);
+		this.attributes.resultsEndDisplay = formatDate(d2);
 	}
 });
 
@@ -18,6 +47,7 @@ window.MonitorCollection = Backbone.Collection.extend({
 	model: Monitor,
 	url: "/api/monitor/list",
 	initialize: function() {
+		console.log(this);
 		this.fetch();
 	},
 	parse: function(data){
@@ -54,4 +84,4 @@ window.PostCollection = Backbone.Collection.extend({
 	parse: function(data){
 		return data.posts;
 	}
-})
+});
