@@ -19,6 +19,12 @@ function formatDate(date) {
 			+ minutes + " " + AMPM;
 }
 
+function formatAuthor(author) {
+	var beg = author.indexOf("("),
+		end = author.indexOf(")");
+	return author.substring(beg + 1, end);	
+}
+
 window.Monitor = Backbone.Model.extend({
 	urlRoot: "/monitors",
 	idAttribute: "id",
@@ -65,6 +71,7 @@ window.Post = Backbone.Model.extend({
 		url: '',
 		data:'',
 		author: '',
+		authorDisplay: '',
 		title: '',
 		location: '',
 		language: '',
@@ -75,6 +82,10 @@ window.Post = Backbone.Model.extend({
 		authorsFollowing: 0,
 		authorsFollowers: 0,
 		authorGender: ''
+	},
+
+	initialize: function(){
+		this.attributes.authorDisplay = formatAuthor(this.attributes.author);
 	}
 });
 

@@ -60,3 +60,27 @@ p label {
   margin-left: 0;
   margin-right: 0;
 }
+
+#senBar {
+    width: 100%;
+    height: 36px;
+}
+
+#senBar .senPos, #senBar .senNeu,#senBar .senNeg {
+    float: left;
+    height: 100%;
+}
+
+#senBar .senPos {
+    background-color: rgb(143, 172, 101);
+}
+
+#senBar .senNeu {
+    background-color: rgb(216, 210, 196);
+}
+
+#senBar .senNeg {
+    background-color: rgb(195, 0, 0);
+}
+
+
