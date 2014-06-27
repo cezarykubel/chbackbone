@@ -18,7 +18,7 @@ window.DetailsView = Backbone.View.extend({
         // Page Structure
         $(this.el).html(this.template(this.model.toJSON()));
 
-        // Number of Posts
+        // Number of Tags
         var len = postCollection.length;
 
         // Posts 10 Tweets in Recent Tweets
@@ -35,11 +35,32 @@ window.DetailsView = Backbone.View.extend({
             $('#allPosts', this.el).html("No tweets to display");
         }
 
+        var lenTags = this.model.attributes.tags.length;
+
+        for(var z = 0; z < lenTags; z++)
+
+        // Posts 10 Tweets in Recent Tweets
+        if(lenTags > 0) {
+            for(var z = 0; z < lenTags; z++) {
+                $('#allTags', this.el)
+                    .append(new TagsDisplay({model: new Tags({name: this.model.attributes.tags[z]})}).render().el);
+
+                postCollection.at(z).on('fetch', this.render, this);
+            }
+        }
+        else
+        {
+            $('#allPosts', this.el).html("No tweets to display");
+        }
+
+
+
+
         /* ~~~~~~~~~~~~~ */
         // Sentiment Bar //
-        /* ~~~~~~~~~~~~~ */
+        /* ~~~~~~~~~~~~~ *//*
 
-        if(this.model.attributes.type == "Buzz") {
+            $('#charts').append("<div id='senBar'></div>");
 
             $("#senBar").append("<p><strong>Sentiment Analysis</strong></p>");
 
@@ -47,19 +68,26 @@ window.DetailsView = Backbone.View.extend({
                 senNeu = 0,
                 senNeg = 0;
 
-            var v1 = [postCollection.at(0).attributes.categoryScores[0].categoryName,
-                         postCollection.at(0).attributes.categoryScores[1].categoryName,
-                         postCollection.at(0).attributes.categoryScores[2].categoryName];
+            var v1 = [];
 
-            var senPosIndex = v1.indexOf("Basic Positive"),
-                senNeuIndex = v1.indexOf("Basic Neutral"),
-                senNegIndex = v1.indexOf("Basic Negative");
+            postCollection.at(0).attributes.categoryScores.forEach(function (entry){
+                v1.push(entry.categoryName);
+            })
 
-            console.log("senPosIndex: " + senPosIndex);
-            console.log("senNeuIndex: " + senNeuIndex);
-            console.log("senNegIndex: " + senNegIndex);
+            if(this.model.attributes.type == "Buzz") {
 
-            console.log("senNeu: " + postCollection.at(0).attributes.categoryScores[senNeuIndex].score)
+                var senPosIndex = v1.indexOf("Basic Positive"),
+                    senNeuIndex = v1.indexOf("Basic Neutral"),
+                    senNegIndex = v1.indexOf("Basic Negative");
+
+            }
+            else if(this.model.attributes.type == "Opinion" || 
+                    this.model.attributes.type == "Social") {
+
+                var senPosIndex = v1.indexOf("General Positive", "Basic Positive"),
+                    senNeuIndex = v1.indexOf("General Neutral"),
+                    senNegIndex = v1.indexOf("General Negative");
+            }
 
             for(var s = 0; s < len; s++) {
 
@@ -83,9 +111,9 @@ window.DetailsView = Backbone.View.extend({
             $('#senBar').append("<div class='senNeg' style='width: "+senNeg+"'></div>");
             $('#senBar').append("<div class='clearfix'></div>");
 
-        }
+    */
 
-        
+ 
 
         return this;
     }
@@ -99,6 +127,21 @@ window.PostsDisplay = Backbone.View.extend({
     },
 
     render: function () {
+        $(this.el).html(this.template(this.model.toJSON()));
+        return this;
+    }
+});
+
+window.TagsDisplay = Backbone.View.extend({
+
+    initialize: function () {
+        this.render();
+    },
+
+    template: _.template("<li><%= name.name %></li>"),
+
+    render: function () {
+        console.log(this.model);
         $(this.el).html(this.template(this.model.toJSON()));
         return this;
     }

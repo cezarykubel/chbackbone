@@ -89,6 +89,12 @@ window.Post = Backbone.Model.extend({
 	}
 });
 
+window.Tags = Backbone.Model.extend({
+	defaults: {
+		name: ''
+	}
+});
+
 window.PostCollection = Backbone.Collection.extend({
 	model: Post,
 	url: null,
