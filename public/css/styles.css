@@ -83,4 +83,10 @@ p label {
     background-color: rgb(195, 0, 0);
 }
 
+#senBar .individualPiece
+{
+    float: left;
+    height: 30px;
+}
+
 

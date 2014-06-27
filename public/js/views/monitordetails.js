@@ -6,6 +6,13 @@ function findWithAttr(array, attr, value) {
     }
 }
 
+function getColor(index) {
+    var radcolor = ["#cf2229","#f48436","#ffd900","#c32635",
+                    "#ffc130", "#fff100","#57b6dd","#439dc0",
+                    "#1b75bb","#10698B"];
+    return radcolor[index];
+}
+
 window.DetailsView = Backbone.View.extend({
 
     initialize: function () {
@@ -39,7 +46,7 @@ window.DetailsView = Backbone.View.extend({
 
         for(var z = 0; z < lenTags; z++)
 
-        // Posts 10 Tweets in Recent Tweets
+        // All Tags
         if(lenTags > 0) {
             for(var z = 0; z < lenTags; z++) {
                 $('#allTags', this.el)
@@ -60,75 +67,59 @@ window.DetailsView = Backbone.View.extend({
         // Sentiment Bar //
         /* ~~~~~~~~~~~~~ */
 
-            
+        if(len > 0) {  
+
             var senPos = 0,
                 senNeu = 0,
                 senNeg = 0;
 
             var v1 = [];
             var allCats = [];
+            var allCatsScores = [];
 
-            postCollection.at(0).attributes.categoryScores.forEach(function (entry){
-                v1.push(entry.categoryName);
-            })
+                postCollection.at(0).attributes.categoryScores.forEach(function (entry){
+                    v1.push(entry.categoryName);
+                    allCats.push(entry.categoryName);
+                });
 
-            var senPosIndex = 0,
-                senNeuIndex = 0,
-                senNegIndex = 0,
-                hasBorG = false;
+            $('#charts').append("<div id='senBar'></div>");
 
-            
-            senPosIndex = v1.indexOf("Basic Positive");
-            senNeuIndex = v1.indexOf("Basic Neutral");
-            senNegIndex = v1.indexOf("Basic Negative");
+            $("#senBar").append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
 
-            if(senPosIndex == -1) {
-                senPosIndex = v1.indexOf("General Positive");
-                senNeuIndex = v1.indexOf("General Neutral");
-                senNegIndex = v1.indexOf("General Negative");
-            }
+            for(var s = 0; s < postCollection.length; s++) {
+                
+                for(var z = 0; z < allCats.length; z++) {
 
-            if(senPosIndex >= 0 || senNeuIndex >= 0 || senNegIndex >= 0){
-                hasBorG = true;
-            }
-            
-            console.log(v1);
-            console.log(hasBorG);
+                    if(allCatsScores[z] == undefined) {
+                            allCatsScores[z] = 0;
+                    }
 
-            if(hasBorG) {
-
-                $('#charts').append("<div id='senBar'></div>");
-
-                $("#senBar").append("<p><strong>Sentiment Analysis</strong></p>");
-
-                for(var s = 0; s < len; s++) {
-
-                    senPos += postCollection.at(s).attributes.categoryScores[senPosIndex].score;
-                    senNeu += postCollection.at(s).attributes.categoryScores[senNeuIndex].score;
-                    senNeg += postCollection.at(s).attributes.categoryScores[senNegIndex].score;
-
+                    if(postCollection.at(s).attributes.categoryScores.length > 0) {
+                        allCatsScores[z] += Math.round(postCollection.at(s).attributes.categoryScores[z].score * 10 ) / 10;
+                    }
                 }
-
-                console.log(len);
-                console.log(senPos);
-                console.log(senNeu);
-                console.log(senNeg);
-
-                senPos /= len;
-                senNeu /= len;
-                senNeg /= len;
-
-                senPos = ((senPos - 0.01) * 100).toFixed(1) + "%";
-                senNeu = ((senNeu - 0.01) * 100).toFixed(1) + "%";
-                senNeg = ((senNeg - 0.01) * 100).toFixed(1) + "%";
-
-
-                $('#senBar').append("<div class='senPos' style='width: "+senPos+"'></div>");
-                $('#senBar').append("<div class='senNeu' style='width: "+senNeu+"'></div>");
-                $('#senBar').append("<div class='senNeg' style='width: "+senNeg+"'></div>");
-                $('#senBar').append("<div class='clearfix'></div>");
-
             }
+
+            var totalCount = 0,
+                totPercentage = 0;
+            for(var z = 0; z < allCatsScores.length; z++) {
+                totalCount += allCatsScores[z];
+            }
+
+            for(var z = 0; z < allCats.length; z++) {
+                allCatsScores[z] /= totalCount;
+                allCatsScores[z] = ((allCatsScores[z]) * 100).toFixed(2) + "%";
+                $('#senBar').append("<div class='individualPiece' style='background-color: "+getColor(z)+";width: "+allCatsScores[z]+"'></div>");
+            }
+            $('#senBar').append("<div class='clearfix'></div>");
+
+            for(var z = 0; z < allCats.length; z++) {
+               
+                $('#senBar').append("<li>"+allCats[z]+" - "+allCatsScores[z]+"</li>");
+            }
+
+        }
+            
 
         return this;
     }

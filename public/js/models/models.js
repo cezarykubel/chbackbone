@@ -47,8 +47,17 @@ window.Monitor = Backbone.Model.extend({
 		var d2 = new Date(this.attributes.resultsEnd);
 		var typeOrig = this.attributes.type;
 		var enabledOrig = (this.attributes.enabled).toString();
-		this.attributes.resultsStartDisplay = formatDate(d);
-		this.attributes.resultsEndDisplay = formatDate(d2);
+
+		if(this.attributes.resultsStart == "") {
+			this.attributes.resultsStartDisplay = "Not Avaliable";
+			this.attributes.resultsEndDisplay = "Not Available";
+		}
+		else
+		{
+			this.attributes.resultsStartDisplay = formatDate(d);
+			this.attributes.resultsEndDisplay = formatDate(d2);
+		}
+
 		this.attributes.type = typeOrig.charAt(0) + typeOrig.slice(1).toLowerCase();
 		this.attributes.enabledDisplay = enabledOrig.charAt(0).toUpperCase() + enabledOrig.slice(1);
 	}
