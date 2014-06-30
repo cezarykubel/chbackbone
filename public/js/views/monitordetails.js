@@ -2,7 +2,13 @@ window.DetailsView = Backbone.View.extend({
 
     initialize: function () {
         window.postCollection = new PostCollection({postID: this.model.id});
-        postCollection.on("sync", this.render, this);
+        window.monitorResultsCollection = 
+            new MonitorResultsCollection({postID: this.model.id});
+
+        postCollection.on("sync", function() {
+            monitorResultsCollection.on("sync", this.render, this);
+        }, this);
+
     },
 
     render: function () {
@@ -103,7 +109,77 @@ window.DetailsView = Backbone.View.extend({
             }
 
         } // End Sentiment Analysis Bar
-    
+
+        // Load Monitor Volume
+        if(this.model.attributes.type == "Buzz") {
+
+            // Monitor Volume
+            var lenMonitors = monitorResultsCollection.length;
+            var totalPosts = 0;
+
+            for(var z = 0; z < lenMonitors; z++) {
+                totalPosts += monitorResultsCollection.models[z].attributes.numberOfDocuments;
+            }
+
+            $('#monResults').append("<h4>Monitor Results</h4><hr />");
+            $('#monResults').append("<p><label><strong>Total Volume:</strong></label> "+addCommas(totalPosts)+"</p>");
+
+        }
+
+        // Load Tweet Times
+        if(len > 0) {  
+
+            var day_data = [
+                { "time" : 12 , value : 0  },
+                { "time" : 1  , value : 0  },
+                { "time" : 2  , value : 0 },
+                { "time" : 3  , value : 0 },
+                { "time" : 4  , value : 0 },
+                { "time" : 5  , value : 0 },
+                { "time" : 6  , value : 0 },
+                { "time" : 7  , value : 0 },
+                { "time" : 8  , value : 0 },
+                { "time" : 9  , value : 0 },
+                { "time" : 10 , value : 0 },
+                { "time" : 11 , value : 0  }
+            ];
+
+            var night_data = [
+                { "time" : 12 , value : 0  },
+                { "time" : 1  , value : 0  },
+                { "time" : 2  , value : 0 },
+                { "time" : 3  , value : 0 },
+                { "time" : 4  , value : 0 },
+                { "time" : 5  , value : 0 },
+                { "time" : 6  , value : 0 },
+                { "time" : 7  , value : 0 },
+                { "time" : 8  , value : 0 },
+                { "time" : 9  , value : 0 },
+                { "time" : 10 , value : 0 },
+                { "time" : 11 , value : 0  }
+            ];
+
+            for(var z = 0; z < len; z++) {
+                var getTime = postCollection.models[z].attributes.date;
+                getTime = new Date(getTime);
+                getTime = getTime.getUTCHours();
+
+                if(getTime <= 11) {
+                    night_data[getTime].value += 1; 
+                }
+                else if(getTime > 11) {
+                    getTime = getTime - 12;
+                    day_data[getTime].value += 1;
+                }
+            }
+
+            $('#charts').append("<p><strong>Tweet Times</strong></p>");
+            $('#charts').append("<div id='timeChartDay' style='width: 50%; float:left'></div>");
+            $('#charts').append("<div id='timeChartNight' style='width: 50%; float:right'></div>");
+            $('#timeChartDay').chTimeChart({data: day_data});
+            $('#timeChartNight').chTimeChart({day: false, data: night_data});
+        }
+        
         return this;
     }
 
@@ -150,3 +226,15 @@ function getColor(index) {
     return radcolor[index];
 }
 
+function addCommas(nStr)
+{
+    nStr += '';
+    x = nStr.split('.');
+    x1 = x[0];
+    x2 = x.length > 1 ? '.' + x[1] : '';
+    var rgx = /(\d+)(\d{3})/;
+    while (rgx.test(x1)) {
+        x1 = x1.replace(rgx, '$1' + ',' + '$2');
+    }
+    return x1 + x2;
+}

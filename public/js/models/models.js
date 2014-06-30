@@ -41,7 +41,6 @@ window.MonitorCollection = Backbone.Collection.extend({
 	model: Monitor,
 	url: "/api/monitor/list",
 	initialize: function() {
-		console.log(this);
 		this.fetch();
 	},
 	parse: function(data){
@@ -90,6 +89,30 @@ window.PostCollection = Backbone.Collection.extend({
 	},
 	parse: function(data){
 		return data.posts;
+	}
+});
+
+window.MonitorResults = Backbone.Model.extend({
+	defaults: {
+		startDate: '',
+		endDate: '',
+		creationDate: '',
+		numberOfDocuments: '',
+		numberOfReleventDocuments: '',
+		categories: [],
+	}
+});
+
+window.MonitorResultsCollection = Backbone.Collection.extend({
+	model: MonitorResults,
+	url: null,
+	initialize: function(options) {
+		this.postID = options.postID;
+		this.url = "/api/monitor/results?id=" + options.postID;
+		this.fetch();
+	},
+	parse: function(data){
+		return data.results;
 	}
 });
 

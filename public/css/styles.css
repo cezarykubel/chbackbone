@@ -63,7 +63,7 @@ p label, label.chart {
 
 #senBar {
     width: 100%;
-    height: 36px;
+    margin-bottom: 25px;
 }
 
 #senBar .senPos, #senBar .senNeu,#senBar .senNeg {
@@ -97,4 +97,70 @@ p label, label.chart {
     margin-top: 6px;
 }
 
+.big-label {
+    font-size: 6;
+    font-weight: bold;
+}
+.small-label {
+    font-size: 4;
+    font-weight: bold;
+}
+.tooltip {
+    background-color:rgba(0,0,0,0.5);
+    padding: 5px 10px;
+    border-radius: 6px;
+    color: white;
+}
+.chOneBarPositive, 
+.chOneBarNeutral, 
+.chOneBarNegative {
+    height: 30px;
+    float: left;
+    cursor: pointer;
+}
+.chOneBarPositive {
+    background: rgb(143, 172, 101);
+}
+.chOneBarNeutral {
+    background: rgb(216, 210, 196);
+    margin: 0 1%;
+}
+.chOneBarNegative {
+    background: rgb(195, 0, 0);
+}
+.chOneBarPositiveText, 
+.chOneBarNeutralText, 
+.chOneBarNegativeText {
+    float: left;
+    font-weight: bold;
+    margin: 10px 0;
+}
+.chOneBarPositiveText span, 
+.chOneBarNeutralText span, 
+.chOneBarNegativeText span {
+    font-size: 1.6em;
+    color: #333;
+    font-weight: bold;
+}
+.chOneBarPositiveText span span, 
+.chOneBarNeutralText span span, 
+.chOneBarNegativeText span span {
+    color: #a9a9a9;
+    font-size: 1em;
+}
+.chOneBarPositiveText {
+    color: #8fac65;
+    width: 33%;
+}
+.chOneBarNeutralText {
+    margin: 10px 1%;
+    color: #666;
+    width: 31%;
+    text-align: center;
+}
+.chOneBarNegativeText {
+    color: #c30000;
+    width: 33%;
+    text-align: right;
+}
 
