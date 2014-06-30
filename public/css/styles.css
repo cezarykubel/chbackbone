@@ -51,7 +51,7 @@ h3 {
     line-height: 25px;
 }
 
-p label {
+p label, label.chart {
     width: 40%;
     float: left;
 }
@@ -87,6 +87,14 @@ p label {
 {
     float: left;
     height: 30px;
+}
+
+#senBar .square{
+    float: left;
+    width: 10px;
+    height: 10px;
+    margin-right: 10px;
+    margin-top: 6px;
 }
 
 

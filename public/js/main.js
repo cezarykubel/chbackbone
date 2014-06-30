@@ -11,7 +11,6 @@ var AppRouter = Backbone.Router.extend({
         window.monitorCollection = new MonitorCollection();
         this.headerView = new HeaderView();
         $('.header').html(this.headerView.el);
-
     },
 
     home: function (id) {

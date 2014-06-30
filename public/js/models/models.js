@@ -1,30 +1,3 @@
-function formatDate(date) {
-	var months = ["January", "February", "March", "April", 
-				  "May", "June", "July", "August", "September", 
-				  "October", "November", "December"];
-
-	var hours = date.getHours();
-	var minutes = date.getMinutes();
-	var AMPM = "AM";
-	if(hours > 12) {
-		hours = hours - 12;
-		AMPM = "PM";
-	}
-	if(minutes < 10) {
-		minutes = "0" + minutes;
-	}
-
-	return months[date.getMonth()] + " " + date.getDate() + ", " 
-			+ date.getFullYear() + " at " + hours + ":" 
-			+ minutes + " " + AMPM;
-}
-
-function formatAuthor(author) {
-	var beg = author.indexOf("("),
-		end = author.indexOf(")");
-	return author.substring(beg + 1, end);	
-}
-
 window.Monitor = Backbone.Model.extend({
 	urlRoot: "/monitors",
 	idAttribute: "id",
@@ -42,6 +15,7 @@ window.Monitor = Backbone.Model.extend({
 		resultsEndDisplay: '',
 		tags: []
 	},
+	
 	initialize: function() {
 		var d = new Date(this.attributes.resultsStart);
 		var d2 = new Date(this.attributes.resultsEnd);
@@ -85,6 +59,7 @@ window.Post = Backbone.Model.extend({
 		location: '',
 		language: '',
 		type: '',
+		typeDisplay: '',
 		categoryScores: [],
 		authorKlout: 0,
 		authorPosts: 0,
@@ -95,6 +70,7 @@ window.Post = Backbone.Model.extend({
 
 	initialize: function(){
 		this.attributes.authorDisplay = formatAuthor(this.attributes.author);
+		this.attributes.typeDisplay = formatType(this.attributes.type, this.attributes.url);
 	}
 });
 
@@ -116,3 +92,56 @@ window.PostCollection = Backbone.Collection.extend({
 		return data.posts;
 	}
 });
+
+function formatDate(date) {
+
+	var months = ["January", "February", "March", "April", 
+				  "May", "June", "July", "August", "September", 
+				  "October", "November", "December"];
+
+	var hours = date.getUTCHours();
+	var minutes = date.getUTCMinutes();
+	var AMPM = "AM";
+	if(hours > 12) {
+		hours = hours - 12;
+		AMPM = "PM";
+	}
+	if(minutes < 10) {
+		minutes = "0" + minutes;
+	}
+	if(hours == 0) {
+		hours = "12";
+	}
+
+	return months[date.getUTCMonth()] + " " + date.getUTCDate() + ", " 
+			+ date.getUTCFullYear() + " at " + hours + ":" 
+			+ minutes + " " + AMPM;
+}
+
+function formatAuthor(author) {
+	var beg = author.indexOf("(");
+
+	if(beg != -1) {
+		beg = (author.indexOf("(") + 1);
+		end = author.indexOf(")");
+	}
+	else{
+		beg = 0;
+		end = author.length - 1;
+	}
+
+	return author.substring(beg, end);	
+}
+
+function formatType(type, url) {
+	if(type != "Custom") {
+		return type;
+	}	
+	else
+	{
+		var index = url.indexOf(".");
+		var sub = url.substring(7, index);
+		return sub.charAt(0).toUpperCase() + sub.slice(1);
+	}
+}
+
