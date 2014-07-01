@@ -84,7 +84,8 @@ window.PostCollection = Backbone.Collection.extend({
 	url: null,
 	initialize: function(options) {
 		this.postID = options.postID;
-		this.url = "/api/monitor/posts?id=" + options.postID;
+		console.log(options.filter);
+		this.url = "/api/monitor/posts?id=" + options.postID + "&filter="+options.filter;
 		this.fetch();
 	},
 	parse: function(data){

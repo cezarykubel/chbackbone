@@ -1,13 +1,63 @@
 window.DetailsView = Backbone.View.extend({
 
+
+    filter: "",
+    newFilter: "",
+    typeFilter: "",
+    curNav: "filArea",
+    checkedSources: [],
+
+    events: {
+        'click li#genButton': 'genArea',
+        'click li#filButton': 'filArea',
+        'click li#statButton': 'statArea'
+    },
+
+    genArea: function() {
+        $("#generalInformation").css("display", "block");
+        $("#filter").css("display", "none");
+        $("#monResults").css("display", "none");
+
+        $("#genButton").addClass("active");
+        $("#filButton").removeClass("active");
+        $("#statButton").removeClass("active");
+
+        this.curNav = "genArea";
+    },
+
+    filArea: function() {
+        $("#generalInformation").css("display", "none");
+        $("#filter").css("display", "block");
+        $("#monResults").css("display", "none");
+
+        $("#genButton").removeClass("active");
+        $("#filButton").addClass("active");
+        $("#statButton").removeClass("active");
+
+        this.curNav = "filArea";
+    },
+
+    statArea: function() {
+        $("#generalInformation").css("display", "none");
+        $("#filter").css("display", "none");
+        $("#monResults").css("display", "block");
+
+        $("#genButton").removeClass("active");
+        $("#filButton").removeClass("active");
+        $("#statButton").addClass("active");
+
+        this.curNav = "statArea";
+    },
+
     initialize: function () {
-        window.postCollection = new PostCollection({postID: this.model.id});
+        window.postCollection = new PostCollection({postID: this.model.id, filter: this.newFilter});
         window.monitorResultsCollection = 
             new MonitorResultsCollection({postID: this.model.id});
 
-        postCollection.on("sync", function() {
-            monitorResultsCollection.on("sync", this.render, this);
+        postCollection.once("sync", function() { 
+            monitorResultsCollection.once("sync", this.render, this);
         }, this);
+        
 
     },
 
@@ -15,6 +65,127 @@ window.DetailsView = Backbone.View.extend({
 
         // Page Structure
         $(this.el).html(this.template(this.model.toJSON()));
+
+        // Load correct navigation page
+        if(this.curNav == "genArea") {
+            this.genArea();
+        }
+        else if(this.curNav == "filArea") {
+            this.filArea();
+        }
+        else if(this.curNav == "statArea") {
+            this.statArea();
+        }
+
+        var typeFilter = "";
+
+        for(var z = 0; z < this.checkedSources.length; z++) {
+            
+            if(z == 0) {
+                typeFilter = "type: " + this.checkedSources[0];
+            }
+            else {
+                typeFilter += "," + this.checkedSources[z];
+            }
+
+            this.typeFilter = typeFilter;
+        }
+        if(this.checkedSources.length == 0) {
+            this.typeFilter = "";
+        }
+
+        // Keep current filter
+        $("#filterText").text(this.newFilter + "|" + this.typeFilter);
+
+        var that = this;
+        
+
+        $(".source").change(function() {
+            if(this.checked) {
+
+                that.checkedSources.push(this.value);
+
+                var hasTypeFilter = that.filter.indexOf("type:");
+                var hasOtherFilters = that.filter.indexOf("|");
+
+                if(that.filter == "") {
+                    // Has no filters
+                    that.filter = "type:" + this.value;
+                }
+                else if(hasTypeFilter != -1 && hasOtherFilters == -1) {
+                    // Has type filter but not other filters
+                    that.filter += "," + this.value;
+                }
+                else if(that.filter != "" && hasTypeFilter == -1) {
+                    // Has other filters but not type
+                    that.filter += "|type:" + this.value;
+                }
+                else if(hasTypeFilter != -1 && hasOtherFilters != -1) {
+                    // Has type and other filters
+                    var first = that.filter.substr(0,(hasTypeFilter + 5));
+                    var second = that.filter.substr((hasTypeFilter + 5), that.filter.length);
+                    var set = first + this.value + "," + second;
+                    that.filter = set;
+                }
+                else {
+                    console.log("There was an error (213)");
+                }
+                
+                window.postCollection = new PostCollection({postID: that.model.id, filter: this.newFilter});
+                postCollection.on("sync", function() {
+                    that.render();
+                }, that);
+
+            }
+            else
+            {
+
+                var valLength = this.value.length;
+                var indexOfVal = that.filter.indexOf(this.value);
+
+                var first = "",
+                    second = "";
+
+                if(that.checkedSources.length > 0) {
+                    if(this.value == that.checkedSources[0]) {
+                        first = that.filter.substr(0, indexOfVal);
+                        second = that.filter.substr((indexOfVal + valLength) + 1, that.filter.length);
+                    } else {
+                        first = that.filter.substr(0, indexOfVal - 1);
+                        second = that.filter.substr((indexOfVal + valLength), that.filter.length);
+                    }
+                }
+                
+                that.filter = first + second;
+
+                var indexToRemove = that.checkedSources.indexOf(this.value);
+                that.checkedSources.splice(indexToRemove, 1);
+
+                window.postCollection = new PostCollection({postID: that.model.id, filter: this.newFilter});
+                postCollection.on("sync", function() {
+                    that.render();
+                }, that);
+            }
+
+            console.log(that.checkedSources);
+        })
+
+        for(var z = 0; z < this.checkedSources.length; z++) {
+            for(var s = 0; s < 11; s++) {
+                if($('.source')[s].value == this.checkedSources[z]) {
+                    $('.source')[s].checked = "checked";
+                }
+            }
+        }
+
+        $("#filterButton").click(function() {
+            var filterText = $("#filterText").val();
+            window.postCollection = new PostCollection({postID: that.model.id, filter: filterText});
+            postCollection.on("sync", function() {
+                this.newFilter = filterText;
+                that.render();
+            }, that);
+        });
 
         // Get Number of Posts
         var len = postCollection.length;

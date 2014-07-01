@@ -10,7 +10,7 @@
 
     <div class="span3 offset3">
 
-        <p style="margin-top: 25px;align: right;"><a href="#monitors">&larr; Back to All Monitors</a></p>
+        <p style="margin-top: 25px;text-align: right;"><a href="#monitors">&larr; Back to All Monitors</a></p>
 
     </div>
 
@@ -22,47 +22,127 @@
 
     <div class="span4 no-gutter">
 
-        <h4>General Information</h4>
+        <ul class="nav nav-pills">
+          <li id="genButton" class="active"><a style="cursor:pointer">General Information</a></li>
+          <li id="filButton"><a style="cursor:pointer">Filter</a></li>
+          <li id="statButton"><a style="cursor:pointer">Monitor Statistics</a></li>
+        </ul>
 
-        <hr />
+        <div id="generalInformation">
 
-        <p><%= description %></p>
+            <h4>General Information</h4>
 
-        <p><label><strong>Type:</strong></label>&nbsp;&nbsp;&nbsp;<%= type %></p>
+            <hr />
 
-        <p><label><strong>Enabled:</strong></label>&nbsp;&nbsp;&nbsp;<%= enabledDisplay %></p>
+            <p><%= description %></p>
 
-        <p><label><strong>Results Start:</strong></label>&nbsp;&nbsp;&nbsp;<%= resultsStartDisplay %></p>
+            <p><label><strong>Type:</strong></label>&nbsp;&nbsp;&nbsp;<%= type %></p>
 
-        <p><label><strong>Results End:</strong></label>&nbsp;&nbsp;&nbsp;<%= resultsEndDisplay %></p>
+            <p><label><strong>Enabled:</strong></label>&nbsp;&nbsp;&nbsp;<%= enabledDisplay %></p>
 
-        <p><label><strong>Tags:</strong></label>&nbsp;&nbsp;&nbsp;<ul id="allTags" style="margin-bottom: 40px"></ul >
+            <p><label><strong>Results Start:</strong></label>&nbsp;&nbsp;&nbsp;<%= resultsStartDisplay %></p>
 
-        <div class="clearfix"></div></p>
+            <p><label><strong>Results End:</strong></label>&nbsp;&nbsp;&nbsp;<%= resultsEndDisplay %></p>
 
-        <div id="monResults"></div>
+            <p><label><strong>Tags:</strong></label>&nbsp;&nbsp;&nbsp;<ul id="allTags" style="margin-bottom: 40px"></ul >
+
+            <div class="clearfix"></div></p>
+
+        </div>
+
+        <div id="monResults" style="margin-bottom: 25px;"></div>
+
+        <div id="filter">
+
+            <h4>Filter</h4>
+
+            <hr />
+
+            <p><small><strong>Sources</strong></small></p>
+            <div class="span6 no-gutter">
+                <p><input class="source" type="checkbox" value="Twitter" / >
+                    &nbsp;&nbsp;&nbsp;Twitter
+                </p>
+                <p><input class="source" type="checkbox" value="Facebook" / >
+                    &nbsp;&nbsp;&nbsp;Facebook
+                </p>
+                <p><input class="source" type="checkbox" value="Instagram" / >
+                    &nbsp;&nbsp;&nbsp;Instagram
+                </p>
+                <p><input class="source" type="checkbox" value="YouTube" / >
+                    &nbsp;&nbsp;&nbsp;YouTube
+                </p>
+                <p><input class="source" type="checkbox" value="Google Plus" / >
+                    &nbsp;&nbsp;&nbsp;Google Plus
+                </p>
+                <p><input class="source" type="checkbox" value="Weibo" / >
+                    &nbsp;&nbsp;&nbsp;Weibo
+                </p>
+            </div>
+            <div class="span6 no-gutter">
+                <p><input class="source" type="checkbox" value="Forums" / >
+                    &nbsp;&nbsp;&nbsp;Forums
+                </p>
+                <p><input class="source" type="checkbox" value="Blogs" / >
+                    &nbsp;&nbsp;&nbsp;Blogs
+                </p>
+                <p><input class="source" type="checkbox" value="Comments" / >
+                    &nbsp;&nbsp;&nbsp;Comments
+                </p>
+                <p><input class="source" type="checkbox" value="News" / >
+                    &nbsp;&nbsp;&nbsp;News
+                </p>
+                <p><input class="source" type="checkbox" value="Reviews" / >
+                    &nbsp;&nbsp;&nbsp;Reviews
+                </p>
+
+            </div>
+            <div class="clearfix"></div>
+            <p style="margin-top: 10px;"><a style="cursor: pointer;" onClick="selectAll()">Select All</a> / <a style="cursor: pointer;">Deselect All</a></p>
+
+            <div class="clearfix" ></div>
+
+            <p><small><strong>Custom Filter</strong></small></p>
+            <p>
+            <textarea id="filterText"></textarea>
+            <div class="clearfix"></div>
+            <input id="clearFilter" type="submit" value="Clear Filter"  />
+            <input id="filterButton" type="submit" value="Run Filter"  />
+            </p>
+
+        </div>
 
     </div>
 
-    <div class="span6">
+        <div class="span6">
 
-        <h4>Visualizations</h4>
+            <h4>Visualizations</h4>
 
-        <hr />
+            <hr />
 
-        <div id="charts"></div>
+            <div id="charts"></div>
 
-    </div>
+        </div>
 
-    <div class="span2">
+        <div class="span2">
 
-        <h4>Recent Mentions</h4>
+            <h4>Recent Mentions</h4>
 
-        <hr />
+            <hr />
 
-        <div id="allPosts">
+            <div id="allPosts">
+            </div>
+
         </div>
 
     </div>
 
 </div>
+
+<script>
+
+function selectAll() {
+    console.log("Select All");
+}
+
+</script>
