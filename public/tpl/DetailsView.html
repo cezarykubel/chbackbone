@@ -98,15 +98,15 @@
 
             </div>
             <div class="clearfix"></div>
-            <p style="margin-top: 10px;"><a style="cursor: pointer;" onClick="selectAll()">Select All</a> / <a style="cursor: pointer;">Deselect All</a></p>
+            <p style="margin-top: 10px;"><a id="selectAllSources" style="cursor: pointer;">Select All</a> / <a id="deselectAllSources" style="cursor: pointer;">Deselect All</a></p>
 
             <div class="clearfix" ></div>
 
             <p><small><strong>Custom Filter</strong></small></p>
             <p>
-            <textarea id="filterText"></textarea>
+            <textarea id="filterText" style="width: 100%;height: 75px"></textarea>
             <div class="clearfix"></div>
-            <input id="clearFilter" type="submit" value="Clear Filter"  />
+            <input id="clearFilter" type="submit" value="Reset Filter"  />
             <input id="filterButton" type="submit" value="Run Filter"  />
             </p>
 

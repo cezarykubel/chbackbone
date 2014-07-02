@@ -50,14 +50,12 @@ window.DetailsView = Backbone.View.extend({
     },
 
     initialize: function () {
-        window.postCollection = new PostCollection({postID: this.model.id, filter: this.newFilter});
+        window.postCollection = new PostCollection({postID: this.model.id, filter: this.filter});
         window.monitorResultsCollection = 
             new MonitorResultsCollection({postID: this.model.id});
 
-        postCollection.once("sync", function() { 
-            monitorResultsCollection.once("sync", this.render, this);
-        }, this);
-        
+        postCollection.on("sync", this.render, this);
+        monitorResultsCollection.on("sync", this.render, this);
 
     },
 
@@ -77,99 +75,47 @@ window.DetailsView = Backbone.View.extend({
             this.statArea();
         }
 
-        var typeFilter = "";
-
-        for(var z = 0; z < this.checkedSources.length; z++) {
-            
-            if(z == 0) {
-                typeFilter = "type: " + this.checkedSources[0];
-            }
-            else {
-                typeFilter += "," + this.checkedSources[z];
-            }
-
-            this.typeFilter = typeFilter;
-        }
-        if(this.checkedSources.length == 0) {
-            this.typeFilter = "";
-        }
-
         // Keep current filter
-        $("#filterText").text(this.newFilter + "|" + this.typeFilter);
+        $("#filterText").text(this.newFilter);
 
         var that = this;
-        
 
         $(".source").change(function() {
             if(this.checked) {
-
                 that.checkedSources.push(this.value);
-
-                var hasTypeFilter = that.filter.indexOf("type:");
-                var hasOtherFilters = that.filter.indexOf("|");
-
-                if(that.filter == "") {
-                    // Has no filters
-                    that.filter = "type:" + this.value;
-                }
-                else if(hasTypeFilter != -1 && hasOtherFilters == -1) {
-                    // Has type filter but not other filters
-                    that.filter += "," + this.value;
-                }
-                else if(that.filter != "" && hasTypeFilter == -1) {
-                    // Has other filters but not type
-                    that.filter += "|type:" + this.value;
-                }
-                else if(hasTypeFilter != -1 && hasOtherFilters != -1) {
-                    // Has type and other filters
-                    var first = that.filter.substr(0,(hasTypeFilter + 5));
-                    var second = that.filter.substr((hasTypeFilter + 5), that.filter.length);
-                    var set = first + this.value + "," + second;
-                    that.filter = set;
-                }
-                else {
-                    console.log("There was an error (213)");
-                }
-                
-                window.postCollection = new PostCollection({postID: that.model.id, filter: this.newFilter});
-                postCollection.on("sync", function() {
-                    that.render();
-                }, that);
-
             }
             else
             {
-
-                var valLength = this.value.length;
-                var indexOfVal = that.filter.indexOf(this.value);
-
-                var first = "",
-                    second = "";
-
-                if(that.checkedSources.length > 0) {
-                    if(this.value == that.checkedSources[0]) {
-                        first = that.filter.substr(0, indexOfVal);
-                        second = that.filter.substr((indexOfVal + valLength) + 1, that.filter.length);
-                    } else {
-                        first = that.filter.substr(0, indexOfVal - 1);
-                        second = that.filter.substr((indexOfVal + valLength), that.filter.length);
-                    }
-                }
-                
-                that.filter = first + second;
-
                 var indexToRemove = that.checkedSources.indexOf(this.value);
                 that.checkedSources.splice(indexToRemove, 1);
+            }
 
-                window.postCollection = new PostCollection({postID: that.model.id, filter: this.newFilter});
+            // Generates Type Filter
+            var typeFilter = "";
+            for(var z = 0; z < that.checkedSources.length; z++) {
+
+                if(z == 0) {
+                    typeFilter = "type:" + that.checkedSources[0];
+                }
+                else {
+                    typeFilter += "," + that.checkedSources[z];
+                }
+
+                that.typeFilter = typeFilter;
+            }
+            if(that.checkedSources.length == 0) {
+                that.typeFilter = "";
+            }
+
+            writeFilter(that.newFilter, that.typeFilter, that);
+
+            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
                 postCollection.on("sync", function() {
                     that.render();
                 }, that);
-            }
-
-            console.log(that.checkedSources);
         })
 
+        // Checks Checkboxes
         for(var z = 0; z < this.checkedSources.length; z++) {
             for(var s = 0; s < 11; s++) {
                 if($('.source')[s].value == this.checkedSources[z]) {
@@ -178,13 +124,67 @@ window.DetailsView = Backbone.View.extend({
             }
         }
 
+        // When custom filter added
         $("#filterButton").click(function() {
-            var filterText = $("#filterText").val();
-            window.postCollection = new PostCollection({postID: that.model.id, filter: filterText});
+            that.newFilter = $("#filterText").val();
+
+            writeFilter(that.newFilter, that.typeFilter, that);
+
+            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
             postCollection.on("sync", function() {
-                this.newFilter = filterText;
                 that.render();
             }, that);
+        });
+
+        //Reset Button
+        $("#clearFilter").click(function() {
+            that.newFilter = "";
+
+            writeFilter(that.newFilter, that.typeFilter, that);
+
+            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
+            postCollection.on("sync", function() {
+                that.render();
+            }, that);
+
+        });
+
+        // Select All Checkboxes
+        $("#selectAllSources").click(function() {
+
+            var ind = 0;
+
+            for(var s = 0; s < 11; s++) {
+                ind = that.checkedSources.indexOf($('.source')[s].value);
+                if(ind == -1) {
+                    that.checkedSources.push($('.source')[s].value);
+                }
+            }
+
+            
+
+            writeFilter(that.newFilter, that.typeFilter, that);
+
+            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
+            postCollection.on("sync", function() {
+                that.render();
+            }, that);
+
+        });
+
+        // Select All Checkboxes
+        $("#deselectAllSources").click(function() {
+
+            that.checkedSources = [];
+            that.typeFilter = "";
+
+            writeFilter(that.newFilter, that.typeFilter, that);
+
+            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
+            postCollection.on("sync", function() {
+                that.render();
+            }, that);
+
         });
 
         // Get Number of Posts
@@ -408,4 +408,14 @@ function addCommas(nStr)
         x1 = x1.replace(rgx, '$1' + ',' + '$2');
     }
     return x1 + x2;
+}
+
+function writeFilter(newFilter, typeFilter, that) {
+    if(newFilter == "") {
+        that.filter = typeFilter;
+    } else if(typeFilter == "") {
+        that.filter = newFilter;
+    } else if(newFilter != "" && typeFilter != ""){
+        that.filter = typeFilter + "|" + newFilter;
+    }
 }

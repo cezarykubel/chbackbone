@@ -39,7 +39,9 @@ var AppRouter = Backbone.Router.extend({
 
     details: function (id) {
         var monitor = monitorCollection.get(id);
-        $("#content").html(new DetailsView({model: monitor}).el)
+        $("#content").html(new DetailsView({
+            model: monitor
+        }).el)
     }
 
 });
