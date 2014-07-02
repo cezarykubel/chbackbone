@@ -1,19 +1,17 @@
 window.DetailsView = Backbone.View.extend({
 
-
-    filter: "",
-    newFilter: "",
-    typeFilter: "",
-    curNav: "filArea",
-    checkedSources: [],
-
+    filter: "",             // Final Filter being passed to Collection
+    newFilter: "",          // Custom Filter Box
+    typeFilter: "",         // Sources Filter
+    curNav: "genArea",      // Starts at General Information
+    checkedSources: [],     // Sources Tracker
     events: {
         'click li#genButton': 'genArea',
         'click li#filButton': 'filArea',
         'click li#statButton': 'statArea'
     },
-
     genArea: function() {
+        // Display General Information Tab
         $("#generalInformation").css("display", "block");
         $("#filter").css("display", "none");
         $("#monResults").css("display", "none");
@@ -24,8 +22,8 @@ window.DetailsView = Backbone.View.extend({
 
         this.curNav = "genArea";
     },
-
     filArea: function() {
+        // Display Filter Tab
         $("#generalInformation").css("display", "none");
         $("#filter").css("display", "block");
         $("#monResults").css("display", "none");
@@ -36,8 +34,8 @@ window.DetailsView = Backbone.View.extend({
 
         this.curNav = "filArea";
     },
-
     statArea: function() {
+        // Display Monitor Statistics
         $("#generalInformation").css("display", "none");
         $("#filter").css("display", "none");
         $("#monResults").css("display", "block");
@@ -48,17 +46,18 @@ window.DetailsView = Backbone.View.extend({
 
         this.curNav = "statArea";
     },
-
     initialize: function () {
-        window.postCollection = new PostCollection({postID: this.model.id, filter: this.filter});
-        window.monitorResultsCollection = 
-            new MonitorResultsCollection({postID: this.model.id});
-
+        window.postCollection = new PostCollection({
+            postID: this.model.id, 
+            filter: this.filter
+        });
+        window.monitorResultsCollection = new MonitorResultsCollection({
+                postID: this.model.id
+        });
         postCollection.on("sync", this.render, this);
         monitorResultsCollection.on("sync", this.render, this);
 
     },
-
     render: function () {
 
         // Page Structure
@@ -78,8 +77,22 @@ window.DetailsView = Backbone.View.extend({
         // Keep current filter
         $("#filterText").text(this.newFilter);
 
+        // Checks Checkboxes
+        for(var z = 0; z < this.checkedSources.length; z++) {
+            for(var s = 0; s < 11; s++) {
+                if($('.source')[s].value == this.checkedSources[z]) {
+                    $('.source')[s].checked = "checked";
+                }
+            }
+        }
+
+        //
+        // Do stuff is something is pressed
+        //
+
         var that = this;
 
+        // When a source is clicked, run:
         $(".source").change(function() {
             if(this.checked) {
                 that.checkedSources.push(this.value);
@@ -90,101 +103,45 @@ window.DetailsView = Backbone.View.extend({
                 that.checkedSources.splice(indexToRemove, 1);
             }
 
-            // Generates Type Filter
-            var typeFilter = "";
-            for(var z = 0; z < that.checkedSources.length; z++) {
-
-                if(z == 0) {
-                    typeFilter = "type:" + that.checkedSources[0];
-                }
-                else {
-                    typeFilter += "," + that.checkedSources[z];
-                }
-
-                that.typeFilter = typeFilter;
-            }
-            if(that.checkedSources.length == 0) {
-                that.typeFilter = "";
-            }
-
+            // Generates Type Filter, Complete Filter, and rerenders
+            genTypeFilter(that);
             writeFilter(that.newFilter, that.typeFilter, that);
-
-            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
-                postCollection.on("sync", function() {
-                    that.render();
-                }, that);
+            rerender(that);
         })
-
-        // Checks Checkboxes
-        for(var z = 0; z < this.checkedSources.length; z++) {
-            for(var s = 0; s < 11; s++) {
-                if($('.source')[s].value == this.checkedSources[z]) {
-                    $('.source')[s].checked = "checked";
-                }
-            }
-        }
 
         // When custom filter added
         $("#filterButton").click(function() {
             that.newFilter = $("#filterText").val();
-
             writeFilter(that.newFilter, that.typeFilter, that);
-
-            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
-            postCollection.on("sync", function() {
-                that.render();
-            }, that);
+            rerender(that);
         });
 
-        //Reset Button
+        // Reset Button
         $("#clearFilter").click(function() {
             that.newFilter = "";
-
             writeFilter(that.newFilter, that.typeFilter, that);
-
-            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
-            postCollection.on("sync", function() {
-                that.render();
-            }, that);
-
+            rerender(that);
         });
 
         // Select All Checkboxes
         $("#selectAllSources").click(function() {
-
             var ind = 0;
-
             for(var s = 0; s < 11; s++) {
                 ind = that.checkedSources.indexOf($('.source')[s].value);
                 if(ind == -1) {
                     that.checkedSources.push($('.source')[s].value);
                 }
             }
-
-            
-
             writeFilter(that.newFilter, that.typeFilter, that);
-
-            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
-            postCollection.on("sync", function() {
-                that.render();
-            }, that);
-
+            rerender(that);
         });
 
-        // Select All Checkboxes
+        // Deselect All Checkboxes
         $("#deselectAllSources").click(function() {
-
             that.checkedSources = [];
             that.typeFilter = "";
-
             writeFilter(that.newFilter, that.typeFilter, that);
-
-            window.postCollection = new PostCollection({postID: that.model.id, filter: that.filter});
-            postCollection.on("sync", function() {
-                that.render();
-            }, that);
-
+            rerender(that);
         });
 
         // Get Number of Posts
@@ -224,10 +181,15 @@ window.DetailsView = Backbone.View.extend({
         }
 
         // Load Sentiment Analysis Bar
-        if(len > 0) {  
-
+        if(len > 0) {
             var allCats = [];           // Category Names
             var allCatsScores = [];     // Category Scores
+
+            // Displays Labels
+            $('#charts')
+                .append("<div id='senBar'></div>");
+            $("#senBar")
+                .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
 
             // Store all Category Names
             postCollection.at(0)
@@ -237,23 +199,18 @@ window.DetailsView = Backbone.View.extend({
                     allCats.push(entry.categoryName);
                 });
 
-            // Displays Labels
-            $('#charts')
-                .append("<div id='senBar'></div>");
-            $("#senBar")
-                .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
-
             // Calculate Category Score Average
             for(var s = 0; s < len; s++) {
                 for(var z = 0; z < allCats.length; z++) {
                     if(allCatsScores[z] == undefined) {
                             allCatsScores[z] = 0;
                     }
-                    if(postCollection.at(s).attributes.categoryScores.length > 0) {
-                        allCatsScores[z] += Math.round(postCollection.at(s)
-                                                .attributes
-                                                .categoryScores[z]
-                                                .score * 10 ) / 10;
+                    if(postCollection.at(s)
+                        .attributes.categoryScores.length > 0) {
+                            allCatsScores[z] += Math.round(postCollection.at(s)
+                                                    .attributes
+                                                    .categoryScores[z]
+                                                    .score * 10 ) / 10;
                     }
                 }
             }
@@ -289,7 +246,8 @@ window.DetailsView = Backbone.View.extend({
             var totalPosts = 0;
 
             for(var z = 0; z < lenMonitors; z++) {
-                totalPosts += monitorResultsCollection.models[z].attributes.numberOfDocuments;
+                totalPosts += monitorResultsCollection.models[z]
+                                .attributes.numberOfDocuments;
             }
 
             $('#monResults').append("<h4>Monitor Results</h4><hr />");
@@ -299,7 +257,6 @@ window.DetailsView = Backbone.View.extend({
 
         // Load Tweet Times
         if(len > 0) {  
-
             var day_data = [
                 { "time" : 12 , value : 0  },
                 { "time" : 1  , value : 0  },
@@ -314,7 +271,6 @@ window.DetailsView = Backbone.View.extend({
                 { "time" : 10 , value : 0 },
                 { "time" : 11 , value : 0  }
             ];
-
             var night_data = [
                 { "time" : 12 , value : 0  },
                 { "time" : 1  , value : 0  },
@@ -334,7 +290,6 @@ window.DetailsView = Backbone.View.extend({
                 var getTime = postCollection.models[z].attributes.date;
                 getTime = new Date(getTime);
                 getTime = getTime.getUTCHours();
-
                 if(getTime <= 11) {
                     night_data[getTime].value += 1; 
                 }
@@ -418,4 +373,29 @@ function writeFilter(newFilter, typeFilter, that) {
     } else if(newFilter != "" && typeFilter != ""){
         that.filter = typeFilter + "|" + newFilter;
     }
+}
+
+function genTypeFilter(that) {
+    var typeFilter = "";
+    for(var z = 0; z < that.checkedSources.length; z++) {
+        if(z == 0) {
+            typeFilter = "type:" + that.checkedSources[0];
+        }
+        else {
+            typeFilter += "," + that.checkedSources[z];
+        }
+        that.typeFilter = typeFilter;
+    }
+    if(that.checkedSources.length == 0) {
+        that.typeFilter = "";
+    }
+}
+function rerender(that) {
+    window.postCollection = new PostCollection({
+        postID: that.model.id, 
+        filter: that.filter
+    });
+    postCollection.on("sync", function() {
+        that.render();
+    }, that);
 }
