@@ -58,7 +58,7 @@
 
             <hr />
 
-            <p><small><strong>Sources</strong></small></p>
+            <p><small><strong>Sources</strong> (<a id="selectAllSources" style="cursor: pointer;">Select All</a> / <a id="deselectAllSources" style="cursor: pointer;">Deselect All</a>)</small></p>
             <div class="span6 no-gutter">
                 <p><input class="source" type="checkbox" value="Twitter" / >
                     &nbsp;&nbsp;&nbsp;Twitter
@@ -97,18 +97,44 @@
                 </p>
 
             </div>
-            <div class="clearfix"></div>
-            <p style="margin-top: 10px;"><a id="selectAllSources" style="cursor: pointer;">Select All</a> / <a id="deselectAllSources" style="cursor: pointer;">Deselect All</a></p>
 
             <div class="clearfix" ></div>
 
-            <p><small><strong>Custom Filter</strong></small></p>
+            <p style="margin-top: 15px">
+                <small>
+                    <strong>Custom Filter</strong> 
+                    <a id="filters" 
+                        style="cursor:pointer;" 
+                        data-toggle="popover"
+                        data-content="
+                            <ul>
+                                <li>author</li>
+                                <li>authorRank</li>
+                                <li>category</li>
+                                <li>keywords</li>
+                                <li>language</li>
+                                <li>location</li>
+                                <li>gender</li>
+                                <li>site</li>
+                                <li>type</li>
+                            </ul>
+                        ">
+
+                        (View All Possible Filters)
+
+                    </a>
+                </small>
+            </p>
             <p>
-            <textarea id="filterText" style="width: 100%;height: 75px"></textarea>
+            <textarea id="filterText" style="width: 100%;height: 40px"></textarea>
             <div class="clearfix"></div>
             <input id="clearFilter" type="submit" value="Reset Filter"  />
             <input id="filterButton" type="submit" value="Run Filter"  />
             </p>
+
+            <p style="margin-top: 15px;"><small><strong>Example Filter</strong></small></p>
+            <p><pre>gender:M|location:USA|language:en,fr</pre></p>
+            <p><small><strong>Note:</strong> Use | to separate filters</small></p>
 
         </div>
 
@@ -138,11 +164,3 @@
     </div>
 
 </div>
-
-<script>
-
-function selectAll() {
-    console.log("Select All");
-}
-
-</script>

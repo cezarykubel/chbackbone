@@ -144,6 +144,12 @@ window.DetailsView = Backbone.View.extend({
             rerender(that);
         });
 
+        // Show tooltip
+        $('#filters').popover({
+            html:true,
+            title: 'Possible Filters'
+        });
+
         // Get Number of Posts
         var len = postCollection.length;
 
@@ -156,6 +162,7 @@ window.DetailsView = Backbone.View.extend({
                     }).render().el);
                 postCollection.at(z).on('fetch', this.render, this);
             }
+            $('#allPosts').append('<button type="button" class="btn btn-primary">Load More Mentions</button>');
         }
         else {
             $('#allPosts', this.el).html("No mentions to display");
