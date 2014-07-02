@@ -58,6 +58,22 @@ window.DetailsView = Backbone.View.extend({
         monitorResultsCollection.on("sync", this.render, this);
 
     },
+    mentionsCounter: 0,
+    renderMentions: function() {
+        // Loads Mentions if exist
+        var len = postCollection.length;
+        if(len > 0) {
+            for(var z = this.mentionsCounter; z < (this.mentionsCounter + 5); z++) {
+                $('#mentions', this.el)
+                    .append(new PostsDisplay({
+                        model: postCollection.at(z)
+                    }).render().el);
+                postCollection.at(z).on('fetch', this.render, this);
+            }
+            this.mentionsCounter += 5;
+            $("#mentions").scrollTop(100000);
+        }
+    },
     render: function () {
 
         // Page Structure
@@ -153,20 +169,19 @@ window.DetailsView = Backbone.View.extend({
         // Get Number of Posts
         var len = postCollection.length;
 
-        // Loads Mentions if exist
+        // Load Mentions Default
         if(len > 0) {
-            for(var z = 0; z < 5; z++) {
-                $('#allPosts', this.el)
-                    .append(new PostsDisplay({
-                        model: postCollection.at(z)
-                    }).render().el);
-                postCollection.at(z).on('fetch', this.render, this);
-            }
-            $('#allPosts').append('<button type="button" class="btn btn-primary">Load More Mentions</button>');
+            $('#allPosts').append('<div id="mentions"></div>');
+            this.renderMentions();
+            $('#allPosts').append('<button id="mentionsButton" type="button" class="btn btn-primary">Load More Mentions</button>');
         }
         else {
             $('#allPosts', this.el).html("No mentions to display");
         }
+        
+        $('#mentionsButton').click(function() {
+            that.renderMentions();
+        })
 
         // Gets Number of Tags
         var lenTags = this.model.attributes.tags.length;

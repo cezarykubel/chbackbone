@@ -163,4 +163,9 @@ p label, label.chart {
     width: 33%;
     text-align: right;
 }
+#mentions
+{
+    overflow-y: auto;
+    height: 275px;
+}
 
