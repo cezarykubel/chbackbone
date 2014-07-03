@@ -148,6 +148,39 @@ window.DetailsView = Backbone.View.extend({
         { "time" : 11 , value : 0  }
     ],
     loadTweetTimes: function() {
+
+        this.defaultNightData = 
+        [
+            { "time" : 12 , value : 0  },
+            { "time" : 1  , value : 0  },
+            { "time" : 2  , value : 0 },
+            { "time" : 3  , value : 0 },
+            { "time" : 4  , value : 0 },
+            { "time" : 5  , value : 0 },
+            { "time" : 6  , value : 0 },
+            { "time" : 7  , value : 0 },
+            { "time" : 8  , value : 0 },
+            { "time" : 9  , value : 0 },
+            { "time" : 10 , value : 0 },
+            { "time" : 11 , value : 0  }
+        ];
+
+        this.defaultDayData = 
+        [
+            { "time" : 12 , value : 0  },
+            { "time" : 1  , value : 0  },
+            { "time" : 2  , value : 0 },
+            { "time" : 3  , value : 0 },
+            { "time" : 4  , value : 0 },
+            { "time" : 5  , value : 0 },
+            { "time" : 6  , value : 0 },
+            { "time" : 7  , value : 0 },
+            { "time" : 8  , value : 0 },
+            { "time" : 9  , value : 0 },
+            { "time" : 10 , value : 0 },
+            { "time" : 11 , value : 0  }
+        ];
+
         var len = postCollection.length;
         for(var z = 0; z < len; z++) {
             var getTime = postCollection.models[z].attributes.date;
@@ -161,6 +194,51 @@ window.DetailsView = Backbone.View.extend({
                 this.defaultDayData[getTime].value += 1;
             }
         }
+    },
+    adjustTweetTimesChart: function(val) {
+
+        var data = [];
+        var getSVG = "";
+
+        if(val == 0) {
+            data = this.defaultDayData;
+            getSVG = d3.select("#timeChartDay");
+        }
+        else if(val == 1) {
+            data = this.defaultNightData;
+            getSVG = d3.select("#timeChartNight");
+        }
+
+        var maxVal = 0;
+        for(var z = 0; z < data.length; z++) {
+            if(data[z].value >= maxVal) {
+                maxVal = data[z].value;
+            }
+        }
+
+        var width = 100,
+            inRad = width / 8,
+            radius = (width / 2) - inRad - 12,
+            scale = radius / maxVal;
+
+        var paths = getSVG.selectAll("path")
+                        .data(data)
+                        .transition()
+                        .duration(750)
+                        .style("fill", function(d) {
+                            return getColors(false, d.value, maxVal);
+                        })
+                        .attr("d", function(d) {
+                            return makeArc(d.value,inRad, 0, width, scale, maxVal);
+                        })
+                        .attr("d", function(d) {
+                            return makeArc(d.value,inRad, 1, width, scale, maxVal);
+                        });
+            
+
+
+        // End Tweet Time Adjust
+
     },
     mentionsCounter: 0,
     initRenderMentions: function() {
@@ -215,8 +293,6 @@ window.DetailsView = Backbone.View.extend({
 
         this.initRenderMentions();
 
-        this.render();
-
         this.loadTweetTimes();
 
         // Render Chart
@@ -225,7 +301,9 @@ window.DetailsView = Backbone.View.extend({
         $('#charts').append("<div id='timeChartNight' style='width: 50%; float:right'></div>");
         $('#timeChartDay').chTimeChart({data: this.defaultDayData});
         $('#timeChartNight').chTimeChart({day: false, data: this.defaultNightData});
-
+        
+        this.render();
+        
         this.renderSentimentBar();
 
         var that = this;
@@ -320,6 +398,13 @@ window.DetailsView = Backbone.View.extend({
 
     },
     render: function () {
+
+        console.log(this.defaultDayData);
+        console.log(this.defaultNightData);
+
+        // 0 for day; 1 for night
+        this.adjustTweetTimesChart(0);
+        this.adjustTweetTimesChart(1);
 
         // Keep current filter
         $("#filterText").text(this.newFilter);
@@ -440,6 +525,7 @@ function rerender(that) {
         var len = postCollection.length;
 
         if(len > 0) {
+            that.loadTweetTimes();
             that.render();
             that.initRenderMentions();
             $('#mentionsButton').css("display", "block");
@@ -450,4 +536,89 @@ function rerender(that) {
         }
 
     }, that);
+}
+
+function makeArc(d, inRad, outRadius, width, scale, maxVal){
+
+    var tenPercent = maxVal / 10;
+
+  return d3.svg.arc()
+    .innerRadius(inRad)
+    .outerRadius(function(){
+      if(outRadius == 0) {
+        return inRad;
+      }
+      else if (tenPercent > d) {
+        return(inRad + 2);
+      }
+      else{
+        return (d * scale) + inRad; }
+    })
+    .startAngle(toRadians(-45))
+    .endAngle(toRadians(-15))();
+}
+
+function toRadians(ang) {
+  return ang * (Math.PI / 180);
+}
+
+function toDegrees(ang) {
+  return ang / (Math.PI / 180);
+}
+
+
+function getColors(num, val, maxVal) {
+      colorScale = maxVal / 6,
+      color = "";
+
+  // Blue Scale
+  if(num == 1) {
+
+  switch(true) {
+    case(val >= 0 && val < colorScale):
+      color = "#c4c4c4";
+      break;
+    case(val >= colorScale && val < colorScale * 2):
+      color = "#57b6dd";
+      break;
+    case(val >= colorScale *2 && val < colorScale * 3):
+      color = "#439dc0";
+      break;
+    case(val >= colorScale *3 && val < colorScale * 4):
+      color = "#10698B";
+      break;
+    case(val >= colorScale *4 && val < colorScale * 5):
+      color = "#1b75bb";
+      break;
+    case(val >= colorScale *5 && val <= colorScale * 6):
+      color = "#166fac";
+      break;
+  }
+  return color;
+
+  }
+  else{
+
+  switch(true) {
+    case(val >= 0 && val < colorScale):
+      color = "#e2e2e2";
+      break;
+    case(val >= colorScale && val < colorScale * 2):
+      color = "#fff100";
+      break;
+    case(val >= colorScale *2 && val < colorScale * 3):
+      color = "#ffd900";
+      break;
+    case(val >= colorScale *3 && val < colorScale * 4):
+      color = "#ffc130";
+      break;
+    case(val >= colorScale *4 && val < colorScale * 5):
+      color = "#f48436";
+      break;
+    case(val >= colorScale *5 && val <= colorScale * 6):
+      color = "#c32635";
+      break;
+  }
+  return color;
+}
 }
