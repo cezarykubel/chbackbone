@@ -54,9 +54,114 @@ window.DetailsView = Backbone.View.extend({
         window.monitorResultsCollection = new MonitorResultsCollection({
                 postID: this.model.id
         });
-        postCollection.on("sync", this.render, this);
-        monitorResultsCollection.on("sync", this.render, this);
+        postCollection.on("sync", this.initRender, this);
+        monitorResultsCollection.on("sync", this.initRender, this);
 
+    },
+    renderSentimentBar: function() {
+        var len = postCollection.length;
+        if(len > 0) {
+            var allCats = [];           // Category Names
+            var allCatsScores = [];     // Category Scores
+
+            // Displays Labels
+            $('#charts')
+                .append("<div id='senBar'></div>");
+            $("#senBar")
+                .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
+
+            // Store all Category Names
+            postCollection.at(0)
+                .attributes
+                .categoryScores
+                .forEach(function (entry){
+                    allCats.push(entry.categoryName);
+                });
+
+            // Calculate Category Score Average
+            for(var s = 0; s < len; s++) {
+                for(var z = 0; z < allCats.length; z++) {
+                    if(allCatsScores[z] == undefined) {
+                            allCatsScores[z] = 0;
+                    }
+                    if(postCollection.at(s)
+                        .attributes.categoryScores.length > 0) {
+                            allCatsScores[z] += Math.round(postCollection.at(s)
+                                                    .attributes
+                                                    .categoryScores[z]
+                                                    .score * 10 ) / 10;
+                    }
+                }
+            }
+
+            // Get total count of scores and percentages
+            var totalCount = 0,
+                totPercentage = 0;
+
+            for(var z = 0; z < allCatsScores.length; z++) {
+                totalCount += allCatsScores[z];
+            }
+
+            for(var z = 0; z < allCats.length; z++) {
+                allCatsScores[z] /= totalCount;
+                allCatsScores[z] = ((allCatsScores[z]) * 100);
+                $('#senBar')
+                    .append("<div class='individualPiece' style='background-color: "+getColor(z)+";width: "+allCatsScores[z]+"%';></div>");
+            }
+            $('#senBar').append("<div class='clearfix'></div><br />");
+
+            // Add Legend
+            for(var z = 0; z < allCats.length; z++) {
+                $('#senBar').append("<small><label class='chart'><div class='square' style='background: "+getColor(z)+"'></div><b>"+allCats[z]+"</b></label>"+allCatsScores[z].toFixed(2)+"%</small><div class='clearfix'></div>");
+            }
+
+        } // End Sentiment Analysis Bar
+    },
+    defaultDayData :  
+    [
+        { "time" : 12 , value : 0  },
+        { "time" : 1  , value : 0  },
+        { "time" : 2  , value : 0 },
+        { "time" : 3  , value : 0 },
+        { "time" : 4  , value : 0 },
+        { "time" : 5  , value : 0 },
+        { "time" : 6  , value : 0 },
+        { "time" : 7  , value : 0 },
+        { "time" : 8  , value : 0 },
+        { "time" : 9  , value : 0 },
+        { "time" : 10 , value : 0 },
+        { "time" : 11 , value : 0  }
+    ],
+    defaultNightData :  
+    [
+        { "time" : 12 , value : 0  },
+        { "time" : 1  , value : 0  },
+        { "time" : 2  , value : 0 },
+        { "time" : 3  , value : 0 },
+        { "time" : 4  , value : 0 },
+        { "time" : 5  , value : 0 },
+        { "time" : 6  , value : 0 },
+        { "time" : 7  , value : 0 },
+        { "time" : 8  , value : 0 },
+        { "time" : 9  , value : 0 },
+        { "time" : 10 , value : 0 },
+        { "time" : 11 , value : 0  }
+    ],
+    loadTweetTimes: function() {
+        console.log("Load Tweet Times");
+        var len = postCollection.length;
+        for(var z = 0; z < len; z++) {
+            var getTime = postCollection.models[z].attributes.date;
+            getTime = new Date(getTime);
+            getTime = getTime.getUTCHours();
+            if(getTime <= 11) {
+                this.defaultNightData[getTime].value += 1; 
+            }
+            else if(getTime > 11) {
+                getTime = getTime - 12;
+                this.defaultDayData[getTime].value += 1;
+            }
+        }
     },
     mentionsCounter: 0,
     renderMentions: function() {
@@ -74,10 +179,27 @@ window.DetailsView = Backbone.View.extend({
             $("#mentions").scrollTop(100000);
         }
     },
-    render: function () {
-
+    initRender: function() {
         // Page Structure
         $(this.el).html(this.template(this.model.toJSON()));
+
+        this.render();
+
+        this.loadTweetTimes();
+
+        // Render Chart
+        $('#charts').append("<p><strong>Tweet Times</strong></p>");
+        $('#charts').append("<div id='timeChartDay' style='width: 50%; float:left'></div>");
+        $('#charts').append("<div id='timeChartNight' style='width: 50%; float:right'></div>");
+        $('#timeChartDay').chTimeChart({data: this.defaultDayData});
+        $('#timeChartNight').chTimeChart({day: false, data: this.defaultNightData});
+
+        this.renderSentimentBar();
+
+            
+
+    },
+    render: function () {
 
         // Load correct navigation page
         if(this.curNav == "genArea") {
@@ -171,9 +293,7 @@ window.DetailsView = Backbone.View.extend({
 
         // Load Mentions Default
         if(len > 0) {
-            $('#allPosts').append('<div id="mentions"></div>');
             this.renderMentions();
-            $('#allPosts').append('<button id="mentionsButton" type="button" class="btn btn-primary">Load More Mentions</button>');
         }
         else {
             $('#allPosts', this.el).html("No mentions to display");
@@ -202,64 +322,6 @@ window.DetailsView = Backbone.View.extend({
             $('#allTags', this.el).html("No tags to display");
         }
 
-        // Load Sentiment Analysis Bar
-        if(len > 0) {
-            var allCats = [];           // Category Names
-            var allCatsScores = [];     // Category Scores
-
-            // Displays Labels
-            $('#charts')
-                .append("<div id='senBar'></div>");
-            $("#senBar")
-                .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
-
-            // Store all Category Names
-            postCollection.at(0)
-                .attributes
-                .categoryScores
-                .forEach(function (entry){
-                    allCats.push(entry.categoryName);
-                });
-
-            // Calculate Category Score Average
-            for(var s = 0; s < len; s++) {
-                for(var z = 0; z < allCats.length; z++) {
-                    if(allCatsScores[z] == undefined) {
-                            allCatsScores[z] = 0;
-                    }
-                    if(postCollection.at(s)
-                        .attributes.categoryScores.length > 0) {
-                            allCatsScores[z] += Math.round(postCollection.at(s)
-                                                    .attributes
-                                                    .categoryScores[z]
-                                                    .score * 10 ) / 10;
-                    }
-                }
-            }
-
-            // Get total count of scores and percentages
-            var totalCount = 0,
-                totPercentage = 0;
-
-            for(var z = 0; z < allCatsScores.length; z++) {
-                totalCount += allCatsScores[z];
-            }
-
-            for(var z = 0; z < allCats.length; z++) {
-                allCatsScores[z] /= totalCount;
-                allCatsScores[z] = ((allCatsScores[z]) * 100);
-                $('#senBar')
-                    .append("<div class='individualPiece' style='background-color: "+getColor(z)+";width: "+allCatsScores[z]+"%';></div>");
-            }
-            $('#senBar').append("<div class='clearfix'></div><br />");
-
-            // Add Legend
-            for(var z = 0; z < allCats.length; z++) {
-                $('#senBar').append("<small><label class='chart'><div class='square' style='background: "+getColor(z)+"'></div><b>"+allCats[z]+"</b></label>"+allCatsScores[z].toFixed(2)+"%</small><div class='clearfix'></div>");
-            }
-
-        } // End Sentiment Analysis Bar
-
         // Load Monitor Volume
         if(this.model.attributes.type == "Buzz") {
 
@@ -277,57 +339,6 @@ window.DetailsView = Backbone.View.extend({
 
         }
 
-        // Load Tweet Times
-        if(len > 0) {  
-            var day_data = [
-                { "time" : 12 , value : 0  },
-                { "time" : 1  , value : 0  },
-                { "time" : 2  , value : 0 },
-                { "time" : 3  , value : 0 },
-                { "time" : 4  , value : 0 },
-                { "time" : 5  , value : 0 },
-                { "time" : 6  , value : 0 },
-                { "time" : 7  , value : 0 },
-                { "time" : 8  , value : 0 },
-                { "time" : 9  , value : 0 },
-                { "time" : 10 , value : 0 },
-                { "time" : 11 , value : 0  }
-            ];
-            var night_data = [
-                { "time" : 12 , value : 0  },
-                { "time" : 1  , value : 0  },
-                { "time" : 2  , value : 0 },
-                { "time" : 3  , value : 0 },
-                { "time" : 4  , value : 0 },
-                { "time" : 5  , value : 0 },
-                { "time" : 6  , value : 0 },
-                { "time" : 7  , value : 0 },
-                { "time" : 8  , value : 0 },
-                { "time" : 9  , value : 0 },
-                { "time" : 10 , value : 0 },
-                { "time" : 11 , value : 0  }
-            ];
-
-            for(var z = 0; z < len; z++) {
-                var getTime = postCollection.models[z].attributes.date;
-                getTime = new Date(getTime);
-                getTime = getTime.getUTCHours();
-                if(getTime <= 11) {
-                    night_data[getTime].value += 1; 
-                }
-                else if(getTime > 11) {
-                    getTime = getTime - 12;
-                    day_data[getTime].value += 1;
-                }
-            }
-
-            $('#charts').append("<p><strong>Tweet Times</strong></p>");
-            $('#charts').append("<div id='timeChartDay' style='width: 50%; float:left'></div>");
-            $('#charts').append("<div id='timeChartNight' style='width: 50%; float:right'></div>");
-            $('#timeChartDay').chTimeChart({data: day_data});
-            $('#timeChartNight').chTimeChart({day: false, data: night_data});
-        }
-        
         return this;
     }
 
