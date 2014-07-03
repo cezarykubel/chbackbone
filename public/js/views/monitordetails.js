@@ -148,7 +148,6 @@ window.DetailsView = Backbone.View.extend({
         { "time" : 11 , value : 0  }
     ],
     loadTweetTimes: function() {
-        console.log("Load Tweet Times");
         var len = postCollection.length;
         for(var z = 0; z < len; z++) {
             var getTime = postCollection.models[z].attributes.date;
@@ -165,16 +164,30 @@ window.DetailsView = Backbone.View.extend({
     },
     mentionsCounter: 0,
     initRenderMentions: function() {
-        this.mentionsCounter = 0;
         $('#mentions').html("");
 
         // Loads Mentions if exist
         var len = postCollection.length;
 
-        console.log(len);
-
         if(len > 0) {
             for(var z = this.mentionsCounter; z < (this.mentionsCounter + 5); z++) {
+                $('#mentions', this.el)
+                    .append(new PostsDisplay({
+                        model: postCollection.at(z)
+                    }).render().el);
+                postCollection.at(z).on('fetch', this.render, this);
+            }
+            $("#mentions").scrollTop(100000);
+        }
+
+        this.mentionsCounter = 0;
+    },
+    renderMentions: function() {
+
+        // Loads Mentions if exist
+        var len = postCollection.length;
+        if(len > 0) {
+            for(var z = this.mentionsCounter + 5; z < (this.mentionsCounter + 10); z++) {
                 $('#mentions', this.el)
                     .append(new PostsDisplay({
                         model: postCollection.at(z)
@@ -200,15 +213,7 @@ window.DetailsView = Backbone.View.extend({
             this.statArea();
         }
 
-        var len = postCollection.length;
-
-        // Load Mentions Default
-        if(len > 0) {
-            this.initRenderMentions();
-        }
-        else {
-            $('#allPosts', this.el).html("No mentions to display");
-        }
+        this.initRenderMentions();
 
         this.render();
 
@@ -244,15 +249,7 @@ window.DetailsView = Backbone.View.extend({
 
         // When custom filter added
         $("#filterButton").click(function() {
-            console.log("Run Filter & Rerender");
             that.newFilter = $("#filterText").val();
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
-        });
-
-        // Reset Button
-        $("#clearFilter").click(function() {
-            that.newFilter = "";
             writeFilter(that.newFilter, that.typeFilter, that);
             rerender(that);
         });
@@ -278,12 +275,23 @@ window.DetailsView = Backbone.View.extend({
             rerender(that);
         });
 
+        $('#mentionsButton').click(function() {
+            that.renderMentions();
+        })
+
 
     },
     render: function () {
 
         // Keep current filter
         $("#filterText").text(this.newFilter);
+
+        // Reset Button
+        $("#clearFilter").click(function() {
+            that.newFilter = "";
+            writeFilter(that.newFilter, that.typeFilter, that);
+            rerender(that);
+        });
 
         // Checks Checkboxes
         for(var z = 0; z < this.checkedSources.length; z++) {
@@ -299,22 +307,12 @@ window.DetailsView = Backbone.View.extend({
         //
 
         var that = this;
-
-
-
         
         // Show tooltip
         $('#filters').popover({
             html:true,
             title: 'Possible Filters'
         });
-
-        // Get Number of Posts
-
-        
-        $('#mentionsButton').click(function() {
-            that.initRenderMentions();
-        })
 
         // Gets Number of Tags
         var lenTags = this.model.attributes.tags.length;
@@ -444,7 +442,6 @@ function rerender(that) {
     postCollection.on("sync", function() {
 
         var len = postCollection.length;
-        console.log("length of postCollection: " + len);
 
         if(len > 0) {
             that.render();
