@@ -164,9 +164,15 @@ window.DetailsView = Backbone.View.extend({
         }
     },
     mentionsCounter: 0,
-    renderMentions: function() {
+    initRenderMentions: function() {
+        this.mentionsCounter = 0;
+        $('#mentions').html("");
+
         // Loads Mentions if exist
         var len = postCollection.length;
+
+        console.log(len);
+
         if(len > 0) {
             for(var z = this.mentionsCounter; z < (this.mentionsCounter + 5); z++) {
                 $('#mentions', this.el)
@@ -183,6 +189,27 @@ window.DetailsView = Backbone.View.extend({
         // Page Structure
         $(this.el).html(this.template(this.model.toJSON()));
 
+        // Load correct navigation page
+        if(this.curNav == "genArea") {
+            this.genArea();
+        }
+        else if(this.curNav == "filArea") {
+            this.filArea();
+        }
+        else if(this.curNav == "statArea") {
+            this.statArea();
+        }
+
+        var len = postCollection.length;
+
+        // Load Mentions Default
+        if(len > 0) {
+            this.initRenderMentions();
+        }
+        else {
+            $('#allPosts', this.el).html("No mentions to display");
+        }
+
         this.render();
 
         this.loadTweetTimes();
@@ -195,38 +222,6 @@ window.DetailsView = Backbone.View.extend({
         $('#timeChartNight').chTimeChart({day: false, data: this.defaultNightData});
 
         this.renderSentimentBar();
-
-            
-
-    },
-    render: function () {
-
-        // Load correct navigation page
-        if(this.curNav == "genArea") {
-            this.genArea();
-        }
-        else if(this.curNav == "filArea") {
-            this.filArea();
-        }
-        else if(this.curNav == "statArea") {
-            this.statArea();
-        }
-
-        // Keep current filter
-        $("#filterText").text(this.newFilter);
-
-        // Checks Checkboxes
-        for(var z = 0; z < this.checkedSources.length; z++) {
-            for(var s = 0; s < 11; s++) {
-                if($('.source')[s].value == this.checkedSources[z]) {
-                    $('.source')[s].checked = "checked";
-                }
-            }
-        }
-
-        //
-        // Do stuff is something is pressed
-        //
 
         var that = this;
 
@@ -249,6 +244,7 @@ window.DetailsView = Backbone.View.extend({
 
         // When custom filter added
         $("#filterButton").click(function() {
+            console.log("Run Filter & Rerender");
             that.newFilter = $("#filterText").val();
             writeFilter(that.newFilter, that.typeFilter, that);
             rerender(that);
@@ -282,6 +278,31 @@ window.DetailsView = Backbone.View.extend({
             rerender(that);
         });
 
+
+    },
+    render: function () {
+
+        // Keep current filter
+        $("#filterText").text(this.newFilter);
+
+        // Checks Checkboxes
+        for(var z = 0; z < this.checkedSources.length; z++) {
+            for(var s = 0; s < 11; s++) {
+                if($('.source')[s].value == this.checkedSources[z]) {
+                    $('.source')[s].checked = "checked";
+                }
+            }
+        }
+
+        //
+        // Do stuff is something is pressed
+        //
+
+        var that = this;
+
+
+
+        
         // Show tooltip
         $('#filters').popover({
             html:true,
@@ -289,18 +310,10 @@ window.DetailsView = Backbone.View.extend({
         });
 
         // Get Number of Posts
-        var len = postCollection.length;
 
-        // Load Mentions Default
-        if(len > 0) {
-            this.renderMentions();
-        }
-        else {
-            $('#allPosts', this.el).html("No mentions to display");
-        }
         
         $('#mentionsButton').click(function() {
-            that.renderMentions();
+            that.initRenderMentions();
         })
 
         // Gets Number of Tags
@@ -429,6 +442,19 @@ function rerender(that) {
         filter: that.filter
     });
     postCollection.on("sync", function() {
-        that.render();
+
+        var len = postCollection.length;
+        console.log("length of postCollection: " + len);
+
+        if(len > 0) {
+            that.render();
+            that.initRenderMentions();
+            $('#mentionsButton').css("display", "block");
+        }
+        else {
+            $('#mentions', that.el).html("No mentions to display");
+            $('#mentionsButton').css("display", "none");
+        }
+
     }, that);
 }
