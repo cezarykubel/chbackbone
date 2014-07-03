@@ -247,6 +247,44 @@ window.DetailsView = Backbone.View.extend({
             rerender(that);
         })
 
+        // Gets Number of Tags
+        var lenTags = this.model.attributes.tags.length;
+
+        // Loads Tags if exist
+        for(var z = 0; z < lenTags; z++) {
+            for(var z = 0; z < lenTags; z++) {
+                $('#allTags', this.el)
+                    .append(new TagsDisplay({
+                        model: new Tags({
+                            name: this.model.attributes.tags[z]
+                        })
+                    }).render().el);
+                postCollection.at(z).on('fetch', this.render, this);
+            }
+        }
+        if(lenTags == 0) {
+            $('#allTags', this.el).html("No tags to display");
+        }
+
+        // Load Monitor Volume
+        if(this.model.attributes.type == "Buzz") {
+
+            // Monitor Volume
+            var lenMonitors = monitorResultsCollection.length;
+            var totalPosts = 0;
+
+            for(var z = 0; z < lenMonitors; z++) {
+                totalPosts += monitorResultsCollection.models[z]
+                                .attributes.numberOfDocuments;
+            }
+
+            $('#monResults').append("<h4>Monitor Results</h4><hr />");
+            $('#monResults').append("<p><label><strong>Total Volume:</strong></label> "+addCommas(totalPosts)+"</p>");
+
+        }
+
+        // Do stuff when something is clicked
+
         // When custom filter added
         $("#filterButton").click(function() {
             that.newFilter = $("#filterText").val();
@@ -302,53 +340,11 @@ window.DetailsView = Backbone.View.extend({
             }
         }
 
-        //
-        // Do stuff is something is pressed
-        //
-
-        var that = this;
-        
         // Show tooltip
         $('#filters').popover({
             html:true,
             title: 'Possible Filters'
         });
-
-        // Gets Number of Tags
-        var lenTags = this.model.attributes.tags.length;
-
-        // Loads Tags if exist
-        for(var z = 0; z < lenTags; z++) {
-            for(var z = 0; z < lenTags; z++) {
-                $('#allTags', this.el)
-                    .append(new TagsDisplay({
-                        model: new Tags({
-                            name: this.model.attributes.tags[z]
-                        })
-                    }).render().el);
-                postCollection.at(z).on('fetch', this.render, this);
-            }
-        }
-        if(lenTags == 0) {
-            $('#allTags', this.el).html("No tags to display");
-        }
-
-        // Load Monitor Volume
-        if(this.model.attributes.type == "Buzz") {
-
-            // Monitor Volume
-            var lenMonitors = monitorResultsCollection.length;
-            var totalPosts = 0;
-
-            for(var z = 0; z < lenMonitors; z++) {
-                totalPosts += monitorResultsCollection.models[z]
-                                .attributes.numberOfDocuments;
-            }
-
-            $('#monResults').append("<h4>Monitor Results</h4><hr />");
-            $('#monResults').append("<p><label><strong>Total Volume:</strong></label> "+addCommas(totalPosts)+"</p>");
-
-        }
 
         return this;
     }
