@@ -296,7 +296,7 @@ window.DetailsView = Backbone.View.extend({
         this.loadTweetTimes();
 
         // Render Chart
-        $('#charts').append("<p><strong>Mention Times</strong></p>");
+        $('#charts').append("<p><strong>Hourly Breakdown</strong></p>");
         $('#charts').append("<div id='timeChartDay' style='width: 50%; float:left'></div>");
         $('#charts').append("<div id='timeChartNight' style='width: 50%; float:right'></div>");
         $('#timeChartDay').chTimeChart({data: this.defaultDayData});

@@ -180,6 +180,7 @@
 $.fn.chTimeChart = function( options ) {
         var settings = $.extend({
         	day: true,
+        	label: "mentions",
 			data: [
 			    { "time" : 12 , value : 6500  },
 			    { "time" : 1  , value : 9200  },
@@ -397,7 +398,6 @@ $.fn.chTimeChart = function( options ) {
 			    .append("text")
 			    .attr("class", "big-label")
 			    .style("font-size", "6")
-			    .style("letter-spacing", "-0.5")
 			    .attr("text-anchor", "middle")
 			    .attr("dy", "0")
 			    .text("");
@@ -406,7 +406,6 @@ $.fn.chTimeChart = function( options ) {
 			    .append("text")
 			    .attr("class", "small-label")
 			    .style("font-size", "4")
-			    .style("letter-spacing", "-0.5")
 			    .attr("text-anchor", "middle")
 			    .attr("dy", "5")
 			    .text("");
@@ -435,7 +434,7 @@ $.fn.chTimeChart = function( options ) {
 			          	d3.select(this).style("opacity", ".6");
 			        }
         			setBigLabel.text(formatValues(d.value));
-        			setSmallLabel.text("tweets");
+        			setSmallLabel.text(settings.label);
       			})
       			.on("mouseout", function(d) {
 			        if(d3.select(this).attr("clicked") != "true") {
@@ -444,7 +443,7 @@ $.fn.chTimeChart = function( options ) {
 			         	setSmallLabel.text("");
 			        }
 			        if(clickedVal != "") {
-			          	setSmallLabel.text("tweets");
+			          	setSmallLabel.text(settings.label);
 			        }
         			setBigLabel.text(clickedVal);
       			})
