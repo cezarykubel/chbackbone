@@ -54,8 +54,14 @@ window.DetailsView = Backbone.View.extend({
         window.monitorResultsCollection = new MonitorResultsCollection({
                 postID: this.model.id
         });
-        postCollection.on("sync", this.initRender, this);
-        monitorResultsCollection.on("sync", this.initRender, this);
+
+        postCollection.on("sync", function() {
+
+            this.initRender();
+
+            monitorResultsCollection.on("sync", this.render, this);
+
+        }, this);
 
     },
     renderSentimentBar: function() {
@@ -256,6 +262,8 @@ window.DetailsView = Backbone.View.extend({
                 postCollection.at(z).on('fetch', this.render, this);
             }
             $("#mentions").scrollTop(100000);
+        } else {
+            $('#mentions', this.el).html("No mentions to display")
         }
 
         this.mentionsCounter = 0;
@@ -277,7 +285,7 @@ window.DetailsView = Backbone.View.extend({
         }
     },
     initRender: function() {
-        // Page Structure
+
         $(this.el).html(this.template(this.model.toJSON()));
 
         // Load correct navigation page
@@ -301,7 +309,7 @@ window.DetailsView = Backbone.View.extend({
         $('#charts').append("<div id='timeChartNight' style='width: 50%; float:right'></div>");
         $('#timeChartDay').chTimeChart({data: this.defaultDayData});
         $('#timeChartNight').chTimeChart({day: false, data: this.defaultNightData});
-        
+
         this.render();
         
         this.renderSentimentBar();
