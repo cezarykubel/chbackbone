@@ -25,12 +25,10 @@ window.Monitor = Backbone.Model.extend({
 								this.attributes.resultsEnd);
 		// Format Monitor Type (BUZZ -> Buzz)
 		var typeOrig = this.attributes.type;
-		this.attributes.typeDisplay = typeOrig.charAt(0)
-									 + typeOrig.slice(1).toLowerCase();
+		this.attributes.typeDisplay = firstCharUpperCase(typeOrig);
 		// Format Monitor Enabled (true -> True)
 		var enabledOrig = (this.attributes.enabled).toString();
-		this.attributes.enabledDisplay = enabledOrig.charAt(0).toUpperCase()
-										+ enabledOrig.slice(1);
+		this.attributes.enabledDisplay = firstCharUpperCase(enabledOrig);
 	},
 	formatDateDisplay: function(dateOne, dateTwo) {
 		// Display "Not Avaliable" if no date set
@@ -47,6 +45,8 @@ window.Monitor = Backbone.Model.extend({
 		}
 	},
 	formatDate: function(date) {
+		// Formats date
+		// ex. July 1, 2014 at 12:00 AM
 		var hours = date.getUTCHours();
 		var minutes = date.getUTCMinutes();
 		var AMPM = "AM";
@@ -60,8 +60,6 @@ window.Monitor = Backbone.Model.extend({
 		if(hours == 0) {
 			hours = "12";
 		}
-		// Formats date
-		// ex. July 1, 2014 at 12:00 AM
 		return months[date.getUTCMonth()] 
 				+ " " + date.getUTCDate() 
 				+ ", " 
@@ -102,8 +100,38 @@ window.Post = Backbone.Model.extend({
 	},
 
 	initialize: function(){
-		this.attributes.authorDisplay = formatAuthor(this.attributes.author);
-		this.attributes.typeDisplay = formatType(this.attributes.type, this.attributes.url);
+		// Format Author to remove ()
+		this.attributes.authorDisplay = 
+			this.formatAuthor(this.attributes.author);
+		// Format Custom to Instagram, GooglePlus, etc.
+		this.attributes.typeDisplay = 
+			this.formatType(this.attributes.type, this.attributes.url);
+	},
+	formatAuthor: function(author) {
+		// Formats author to remove ()
+		// ex. (Crimson Hexagon) -> Crimson Hexagon
+		var beg = author.indexOf("(");
+		if(beg != -1) {
+			beg = (author.indexOf("(") + 1);
+			end = author.indexOf(")");
+		}
+		else{
+			beg = 0;
+			end = author.length - 1;
+		}
+		return author.substring(beg, end);	
+	},
+	formatType: function(type, url) {
+		// Formats when Type == Custom
+		if(type != "Custom") {
+			return type;
+		}	
+		else
+		{
+			var index = url.indexOf(".");
+			var sub = url.substring(7, index);
+			return firstCharUpperCase(sub);
+		}
 	}
 });
 
@@ -116,10 +144,12 @@ window.Tags = Backbone.Model.extend({
 window.PostCollection = Backbone.Collection.extend({
 	model: Post,
 	url: null,
+	allCategories: [],
 	initialize: function(options) {
 		this.postID = options.postID;
-		console.log(options.filter);
-		this.url = "/api/monitor/posts?id=" + options.postID + "&filter="+options.filter+"&extendLimit=false";
+		this.url = "/api/monitor/posts?id=" + options.postID 
+					+ "&filter=" + options.filter 
+					+ "&extendLimit=false";
 		this.fetch();
 	},
 	parse: function(data){
@@ -143,39 +173,14 @@ window.MonitorResultsCollection = Backbone.Collection.extend({
 	url: null,
 	initialize: function(options) {
 		this.postID = options.postID;
-		this.url = "/api/monitor/results?id=" + options.postID;
+		this.url = "/api/monitor/results?id=" 
+					+ options.postID;
 		this.fetch();
 	},
 	parse: function(data){
 		return data.results;
 	}
 });
-
-
-function formatAuthor(author) {
-	var beg = author.indexOf("(");
-
-	if(beg != -1) {
-		beg = (author.indexOf("(") + 1);
-		end = author.indexOf(")");
-	}
-	else{
-		beg = 0;
-		end = author.length - 1;
-	}
-
-	return author.substring(beg, end);	
+function firstCharUpperCase(string) {
+	return (string.charAt(0).toUpperCase() + string.slice(1).toLowerCase());
 }
-
-function formatType(type, url) {
-	if(type != "Custom") {
-		return type;
-	}	
-	else
-	{
-		var index = url.indexOf(".");
-		var sub = url.substring(7, index);
-		return sub.charAt(0).toUpperCase() + sub.slice(1);
-	}
-}
-
