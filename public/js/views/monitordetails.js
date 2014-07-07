@@ -47,12 +47,17 @@ window.DetailsView = Backbone.View.extend({
         this.curNav = "statArea";
     },
     initialize: function () {
+
+        var url = document.URL,
+            index = url.indexOf("#details/"),
+            viewId = url.substr(index + 9, url.length);
+        
         window.postCollection = new PostCollection({
-            postID: this.model.id, 
+            postID: viewId, 
             filter: this.filter
         });
         window.monitorResultsCollection = new MonitorResultsCollection({
-                postID: this.model.id
+                postID: viewId
         });
 
         postCollection.on("sync", this.initRender, this);
