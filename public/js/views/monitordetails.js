@@ -55,13 +55,8 @@ window.DetailsView = Backbone.View.extend({
                 postID: this.model.id
         });
 
-        postCollection.on("sync", function() {
-
-            this.initRender();
-
-            monitorResultsCollection.on("sync", this.render, this);
-
-        }, this);
+        postCollection.on("sync", this.initRender, this);
+        monitorResultsCollection.on("sync", this.initRender, this);
 
     },
     renderSentimentBar: function() {
@@ -406,9 +401,6 @@ window.DetailsView = Backbone.View.extend({
 
     },
     render: function () {
-
-        console.log(this.defaultDayData);
-        console.log(this.defaultNightData);
 
         // 0 for day; 1 for night
         this.adjustTweetTimesChart(0);

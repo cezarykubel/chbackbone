@@ -1,12 +1,16 @@
+var notAvailable = "Not Available",
+	months =	["January",	"February",	"March",	"April", 
+			  	 "May", 	"June", 	"July", 	"August", 
+			  	 "September","October", "November", "December"];
 window.Monitor = Backbone.Model.extend({
 	urlRoot: "/monitors",
 	idAttribute: "id",
-
 	defaults: {
 		id: '',
 		name:'',
 		description: '',
 		type: '',
+		typeDisplay: '',
 		enabled: '',
 		enabledDisplay: '',
 		resultsStart: '',
@@ -15,25 +19,55 @@ window.Monitor = Backbone.Model.extend({
 		resultsEndDisplay: '',
 		tags: []
 	},
-	
 	initialize: function() {
-		var d = new Date(this.attributes.resultsStart);
-		var d2 = new Date(this.attributes.resultsEnd);
+		// Format Date
+		this.formatDateDisplay(this.attributes.resultsStart, 
+								this.attributes.resultsEnd);
+		// Format Monitor Type (BUZZ -> Buzz)
 		var typeOrig = this.attributes.type;
+		this.attributes.typeDisplay = typeOrig.charAt(0)
+									 + typeOrig.slice(1).toLowerCase();
+		// Format Monitor Enabled (true -> True)
 		var enabledOrig = (this.attributes.enabled).toString();
-
-		if(this.attributes.resultsStart == "") {
-			this.attributes.resultsStartDisplay = "Not Avaliable";
-			this.attributes.resultsEndDisplay = "Not Available";
+		this.attributes.enabledDisplay = enabledOrig.charAt(0).toUpperCase()
+										+ enabledOrig.slice(1);
+	},
+	formatDateDisplay: function(dateOne, dateTwo) {
+		// Display "Not Avaliable" if no date set
+		if(dateOne == "") {
+			this.attributes.resultsStartDisplay,
+			this.attributes.resultsEndDisplay = notAvailable;
 		}
-		else
+		else // Format Date Otherwise
 		{
-			this.attributes.resultsStartDisplay = formatDate(d);
-			this.attributes.resultsEndDisplay = formatDate(d2);
+			this.attributes.resultsStartDisplay = 
+				this.formatDate(new Date(dateOne));
+			this.attributes.resultsEndDisplay = 
+				this.formatDate(new Date(dateTwo));
 		}
-
-		this.attributes.type = typeOrig.charAt(0) + typeOrig.slice(1).toLowerCase();
-		this.attributes.enabledDisplay = enabledOrig.charAt(0).toUpperCase() + enabledOrig.slice(1);
+	},
+	formatDate: function(date) {
+		var hours = date.getUTCHours();
+		var minutes = date.getUTCMinutes();
+		var AMPM = "AM";
+		if(hours > 12) {
+			hours = hours - 12;
+			AMPM = "PM";
+		}
+		if(minutes < 10) {
+			minutes = "0" + minutes;
+		}
+		if(hours == 0) {
+			hours = "12";
+		}
+		// Formats date
+		// ex. July 1, 2014 at 12:00 AM
+		return months[date.getUTCMonth()] 
+				+ " " + date.getUTCDate() 
+				+ ", " 
+				+ date.getUTCFullYear() 
+				+ " at " + hours + ":" 
+				+ minutes + " " + AMPM;
 	}
 });
 
@@ -117,30 +151,6 @@ window.MonitorResultsCollection = Backbone.Collection.extend({
 	}
 });
 
-function formatDate(date) {
-
-	var months = ["January", "February", "March", "April", 
-				  "May", "June", "July", "August", "September", 
-				  "October", "November", "December"];
-
-	var hours = date.getUTCHours();
-	var minutes = date.getUTCMinutes();
-	var AMPM = "AM";
-	if(hours > 12) {
-		hours = hours - 12;
-		AMPM = "PM";
-	}
-	if(minutes < 10) {
-		minutes = "0" + minutes;
-	}
-	if(hours == 0) {
-		hours = "12";
-	}
-
-	return months[date.getUTCMonth()] + " " + date.getUTCDate() + ", " 
-			+ date.getUTCFullYear() + " at " + hours + ":" 
-			+ minutes + " " + AMPM;
-}
 
 function formatAuthor(author) {
 	var beg = author.indexOf("(");
