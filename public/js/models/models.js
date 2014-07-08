@@ -17,18 +17,24 @@ window.Monitor = Backbone.Model.extend({
 		resultsEnd: '',
 		resultsStartDisplay: '',
 		resultsEndDisplay: '',
-		tags: []
+		tags: [],
+		tagsDisplay: []
 	},
 	initialize: function() {
+		var attr = this.attributes;
 		// Format Date
-		this.formatDateDisplay(this.attributes.resultsStart, 
-								this.attributes.resultsEnd);
+		this.formatDateDisplay(attr.resultsStart, attr.resultsEnd);
 		// Format Monitor Type (BUZZ -> Buzz)
-		var typeOrig = this.attributes.type;
-		this.attributes.typeDisplay = firstCharUpperCase(typeOrig);
+		var typeOrig = attr.type;
+		attr.typeDisplay = firstCharUpperCase(typeOrig);
 		// Format Monitor Enabled (true -> True)
-		var enabledOrig = (this.attributes.enabled).toString();
-		this.attributes.enabledDisplay = firstCharUpperCase(enabledOrig);
+		var enabledOrig = (attr.enabled).toString();
+		attr.enabledDisplay = firstCharUpperCase(enabledOrig);
+		// Format Tags
+		var divTags = attr.tags.map(function(d) {
+			return "<li>" + d.name + "</li>";
+		});
+		attr.tagsDisplay = divTags;
 	},
 	formatDateDisplay: function(dateOne, dateTwo) {
 		// Display "Not Avaliable" if no date set
@@ -150,6 +156,8 @@ window.PostCollection = Backbone.Collection.extend({
 	arrMentions: [],		// Array of Mentions
 	totalScores: 0,			// Total Number of Scores
 	numCategories: 0,		// Number of Categories
+	defaultNightData: [],
+	defaultDayData: [],
 	initialize: function(options) {
 		this.postID = options.postID;
 		this.url = "/api/monitor/posts?id=" + options.postID 
@@ -212,6 +220,48 @@ window.PostCollection = Backbone.Collection.extend({
                     }).render().el)
 			}
 			that.arrMentions = arrMentions;
+			// End
+
+			// Store Mention Times
+			that.defaultDayData = [
+	        { "time" : 12 , value : 0  },
+	        { "time" : 1  , value : 0  },
+	        { "time" : 2  , value : 0 },
+	        { "time" : 3  , value : 0 },
+	        { "time" : 4  , value : 0 },
+	        { "time" : 5  , value : 0 },
+	        { "time" : 6  , value : 0 },
+	        { "time" : 7  , value : 0 },
+	        { "time" : 8  , value : 0 },
+	        { "time" : 9  , value : 0 },
+	        { "time" : 10 , value : 0 },
+	        { "time" : 11 , value : 0  }
+	    	];
+			that.defaultNightData = [
+	        { "time" : 12 , value : 0  },
+	        { "time" : 1  , value : 0  },
+	        { "time" : 2  , value : 0 },
+	        { "time" : 3  , value : 0 },
+	        { "time" : 4  , value : 0 },
+	        { "time" : 5  , value : 0 },
+	        { "time" : 6  , value : 0 },
+	        { "time" : 7  , value : 0 },
+	        { "time" : 8  , value : 0 },
+	        { "time" : 9  , value : 0 },
+	        { "time" : 10 , value : 0 },
+	        { "time" : 11 , value : 0  }
+	    	];
+			arrModels.map(function(d) {
+				var date = new Date(d.attributes.date);
+				var UTCHours = date.getUTCHours();
+				if(UTCHours <= 11) {
+	                that.defaultNightData[UTCHours].value += 1; 
+	            }
+	            else if(UTCHours > 11) {
+	                UTCHours = UTCHours - 12;
+	                that.defaultDayData[UTCHours].value += 1;
+	            }
+			});
 			// End
 
             that.trigger("ready");

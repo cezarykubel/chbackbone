@@ -1,3 +1,10 @@
+// Label and Div Variables
+var timeChartLabels = 
+    "<p><strong>Hourly Breakdown</strong></p> " 
+    + "<div id='timeChartDay' style='width: 50%; float:left'></div>"
+    + "<div id='timeChartNight' style='width: 50%; float:right'></div>";
+
+// Views
 window.DetailsView = Backbone.View.extend({
 
     filter: "",             // Final Filter being passed to Collection
@@ -20,51 +27,60 @@ window.DetailsView = Backbone.View.extend({
             postID: viewId, 
             filter: this.filter
         });
+
         window.monitorResultsCollection = new MonitorResultsCollection({
                 postID: viewId
         });
 
         postCollection.on("ready", function() {
+            this.checkedSources = [];
             this.initRender();
         }, this);
-        //monitorResultsCollection.on("sync", this.initRender, this);
-
     },
     initRender: function() {
 
         // Page Structure
         $(this.el).html(this.template(this.model.toJSON()));
 
-        // Generates Correct Menu
+        // Render Correct Menu
         this.genArea();
         
-        // Generate Inital Mentions
+        // Render Inital Mentions
         this.initRenderMentions();
 
-        this.loadTweetTimes();
+        console.log(postCollection.defaultDayData);
 
         // Render Chart
-        $('#charts').append("<p><strong>Hourly Breakdown</strong></p>");
-        $('#charts').append("<div id='timeChartDay' style='width: 50%; float:left'></div>");
-        $('#charts').append("<div id='timeChartNight' style='width: 50%; float:right'></div>");
-        $('#timeChartDay').chTimeChart({data: this.defaultDayData});
-        $('#timeChartNight').chTimeChart({day: false, data: this.defaultNightData});
+        $('#charts').append(timeChartLabels);
+        $('#timeChartDay').chTimeChart({
+            data: postCollection.defaultDayData
+        });
+        $('#timeChartNight').chTimeChart({
+            day: false, 
+            data: postCollection.defaultNightData
+        });
+        // End
 
+        // Renders Rest of Page
         this.render();
-        
+
+        // Render Sentiment Bar
         this.renderSentimentBar();
 
-        var that = this;
-
         // When a source is clicked, run:
+        var that = this;
         $(".source").change(function() {
-            if(this.checked) {
-                that.checkedSources.push(this.value);
-            }
+
+            // Array of Checked Sources
+            var arrSources = that.checkedSources;
+
+            if(this.checked) { 
+                arrSources.push(this.value);
+            } 
             else
             {
-                var indexToRemove = that.checkedSources.indexOf(this.value);
-                that.checkedSources.splice(indexToRemove, 1);
+                var indexToRm = arrSources.indexOf(this.value);
+                arrSources.splice(indexToRm, 1);
             }
 
             // Generates Type Filter, Complete Filter, and rerenders
@@ -72,44 +88,18 @@ window.DetailsView = Backbone.View.extend({
             writeFilter(that.newFilter, that.typeFilter, that);
             rerender(that);
         })
+        // End
 
-        // Gets Number of Tags
-        var lenTags = this.model.attributes.tags.length;
+        // Generate Tags
+        var modelAttr = this.model.attributes;
+        var lenTags = modelAttr.tags.length;
 
-        // Loads Tags if exist
-        for(var z = 0; z < lenTags; z++) {
-            for(var z = 0; z < lenTags; z++) {
-                $('#allTags', this.el)
-                    .append(new TagsDisplay({
-                        model: new Tags({
-                            name: this.model.attributes.tags[z]
-                        })
-                    }).render().el);
-                postCollection.at(z).on('fetch', this.render, this);
-            }
-        }
+        $('#allTags').append(modelAttr.tagsDisplay);
+
         if(lenTags == 0) {
             $('#allTags', this.el).html("No tags to display");
         }
-
-        // Load Monitor Volume
-        if(this.model.attributes.type == "Buzz") {
-
-            // Monitor Volume
-            var lenMonitors = monitorResultsCollection.length;
-            var totalPosts = 0;
-
-            for(var z = 0; z < lenMonitors; z++) {
-                totalPosts += monitorResultsCollection.models[z]
-                                .attributes.numberOfDocuments;
-            }
-
-            $('#monResults').append("<h4>Monitor Results</h4><hr />");
-            $('#monResults').append("<p><label><strong>Total Volume:</strong></label> "+addCommas(totalPosts)+"</p>");
-
-        }
-
-        // Do stuff when something is clicked
+        // End
 
         // When custom filter added
         $("#filterButton").click(function() {
@@ -165,7 +155,6 @@ window.DetailsView = Backbone.View.extend({
         } else {
             $('#mentions', this.el).html("No mentions to display")
         }
-
         this.mentionsCounter = 0;
     },
     hasPosts: function() {
@@ -194,95 +183,17 @@ window.DetailsView = Backbone.View.extend({
             }
         }
     },
-    defaultDayData :  
-    [
-        { "time" : 12 , value : 0  },
-        { "time" : 1  , value : 0  },
-        { "time" : 2  , value : 0 },
-        { "time" : 3  , value : 0 },
-        { "time" : 4  , value : 0 },
-        { "time" : 5  , value : 0 },
-        { "time" : 6  , value : 0 },
-        { "time" : 7  , value : 0 },
-        { "time" : 8  , value : 0 },
-        { "time" : 9  , value : 0 },
-        { "time" : 10 , value : 0 },
-        { "time" : 11 , value : 0  }
-    ],
-    defaultNightData :  
-    [
-        { "time" : 12 , value : 0  },
-        { "time" : 1  , value : 0  },
-        { "time" : 2  , value : 0 },
-        { "time" : 3  , value : 0 },
-        { "time" : 4  , value : 0 },
-        { "time" : 5  , value : 0 },
-        { "time" : 6  , value : 0 },
-        { "time" : 7  , value : 0 },
-        { "time" : 8  , value : 0 },
-        { "time" : 9  , value : 0 },
-        { "time" : 10 , value : 0 },
-        { "time" : 11 , value : 0  }
-    ],
-    loadTweetTimes: function() {
-
-        this.defaultNightData = 
-        [
-            { "time" : 12 , value : 0  },
-            { "time" : 1  , value : 0  },
-            { "time" : 2  , value : 0 },
-            { "time" : 3  , value : 0 },
-            { "time" : 4  , value : 0 },
-            { "time" : 5  , value : 0 },
-            { "time" : 6  , value : 0 },
-            { "time" : 7  , value : 0 },
-            { "time" : 8  , value : 0 },
-            { "time" : 9  , value : 0 },
-            { "time" : 10 , value : 0 },
-            { "time" : 11 , value : 0  }
-        ];
-
-        this.defaultDayData = 
-        [
-            { "time" : 12 , value : 0  },
-            { "time" : 1  , value : 0  },
-            { "time" : 2  , value : 0 },
-            { "time" : 3  , value : 0 },
-            { "time" : 4  , value : 0 },
-            { "time" : 5  , value : 0 },
-            { "time" : 6  , value : 0 },
-            { "time" : 7  , value : 0 },
-            { "time" : 8  , value : 0 },
-            { "time" : 9  , value : 0 },
-            { "time" : 10 , value : 0 },
-            { "time" : 11 , value : 0  }
-        ];
-
-        var len = postCollection.length;
-        for(var z = 0; z < len; z++) {
-            var getTime = postCollection.models[z].attributes.date;
-            getTime = new Date(getTime);
-            getTime = getTime.getUTCHours();
-            if(getTime <= 11) {
-                this.defaultNightData[getTime].value += 1; 
-            }
-            else if(getTime > 11) {
-                getTime = getTime - 12;
-                this.defaultDayData[getTime].value += 1;
-            }
-        }
-    },
     adjustTweetTimesChart: function(val) {
 
         var data = [];
         var getSVG = "";
 
         if(val == 0) {
-            data = this.defaultDayData;
+            data = postCollection.defaultDayData;
             getSVG = d3.select("#timeChartDay");
         }
         else if(val == 1) {
-            data = this.defaultNightData;
+            data = postCollection.defaultNightData;
             getSVG = d3.select("#timeChartNight");
         }
 
@@ -335,7 +246,6 @@ window.DetailsView = Backbone.View.extend({
     },
     render: function () {
 
-        // 0 for day; 1 for night
         this.adjustTweetTimesChart(0);
         this.adjustTweetTimesChart(1);
 
@@ -389,20 +299,7 @@ window.DetailsView = Backbone.View.extend({
         $("#statButton").removeClass("active");
 
         this.curNav = "filArea";
-    },
-    statArea: function() {
-        // Display Monitor Statistics
-        $("#generalInformation").css("display", "none");
-        $("#filter").css("display", "none");
-        $("#monResults").css("display", "block");
-
-        $("#genButton").removeClass("active");
-        $("#filButton").removeClass("active");
-        $("#statButton").addClass("active");
-
-        this.curNav = "statArea";
     }
-
 });
 
 window.PostsDisplay = Backbone.View.extend({
@@ -410,20 +307,6 @@ window.PostsDisplay = Backbone.View.extend({
     initialize: function () {
         this.render();
     },
-
-    render: function () {
-        $(this.el).html(this.template(this.model.toJSON()));
-        return this;
-    }
-});
-
-window.TagsDisplay = Backbone.View.extend({
-
-    initialize: function () {
-        this.render();
-    },
-
-    template: _.template("<li><%= name.name %></li>"),
 
     render: function () {
         $(this.el).html(this.template(this.model.toJSON()));
@@ -494,7 +377,7 @@ function rerender(that) {
         var len = postCollection.length;
 
         if(len > 0) {
-            that.loadTweetTimes();
+            //that.loadTweetTimes();
             that.render();
             that.initRenderMentions();
             $('#mentionsButton').css("display", "block");
