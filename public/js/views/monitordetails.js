@@ -10,42 +10,6 @@ window.DetailsView = Backbone.View.extend({
         'click li#filButton': 'filArea',
         'click li#statButton': 'statArea'
     },
-    genArea: function() {
-        // Display General Information Tab
-        $("#generalInformation").css("display", "block");
-        $("#filter").css("display", "none");
-        $("#monResults").css("display", "none");
-
-        $("#genButton").addClass("active");
-        $("#filButton").removeClass("active");
-        $("#statButton").removeClass("active");
-
-        this.curNav = "genArea";
-    },
-    filArea: function() {
-        // Display Filter Tab
-        $("#generalInformation").css("display", "none");
-        $("#filter").css("display", "block");
-        $("#monResults").css("display", "none");
-
-        $("#genButton").removeClass("active");
-        $("#filButton").addClass("active");
-        $("#statButton").removeClass("active");
-
-        this.curNav = "filArea";
-    },
-    statArea: function() {
-        // Display Monitor Statistics
-        $("#generalInformation").css("display", "none");
-        $("#filter").css("display", "none");
-        $("#monResults").css("display", "block");
-
-        $("#genButton").removeClass("active");
-        $("#filButton").removeClass("active");
-        $("#statButton").addClass("active");
-
-        this.curNav = "statArea";
-    },
     initialize: function () {
 
         var url = document.URL,
@@ -60,68 +24,175 @@ window.DetailsView = Backbone.View.extend({
                 postID: viewId
         });
 
-        postCollection.on("sync", this.initRender, this);
-        monitorResultsCollection.on("sync", this.initRender, this);
+        postCollection.on("ready", function() {
+            this.initRender();
+        }, this);
+        //monitorResultsCollection.on("sync", this.initRender, this);
 
     },
-    renderSentimentBar: function() {
-        var len = postCollection.length;
-        if(len > 0) {
-            var allCats = [];           // Category Names
-            var allCatsScores = [];     // Category Scores
+    initRender: function() {
 
+        // Page Structure
+        $(this.el).html(this.template(this.model.toJSON()));
+
+        // Generates Correct Menu
+        this.genArea();
+        
+        // Generate Inital Mentions
+        this.initRenderMentions();
+
+        this.loadTweetTimes();
+
+        // Render Chart
+        $('#charts').append("<p><strong>Hourly Breakdown</strong></p>");
+        $('#charts').append("<div id='timeChartDay' style='width: 50%; float:left'></div>");
+        $('#charts').append("<div id='timeChartNight' style='width: 50%; float:right'></div>");
+        $('#timeChartDay').chTimeChart({data: this.defaultDayData});
+        $('#timeChartNight').chTimeChart({day: false, data: this.defaultNightData});
+
+        this.render();
+        
+        this.renderSentimentBar();
+
+        var that = this;
+
+        // When a source is clicked, run:
+        $(".source").change(function() {
+            if(this.checked) {
+                that.checkedSources.push(this.value);
+            }
+            else
+            {
+                var indexToRemove = that.checkedSources.indexOf(this.value);
+                that.checkedSources.splice(indexToRemove, 1);
+            }
+
+            // Generates Type Filter, Complete Filter, and rerenders
+            genTypeFilter(that);
+            writeFilter(that.newFilter, that.typeFilter, that);
+            rerender(that);
+        })
+
+        // Gets Number of Tags
+        var lenTags = this.model.attributes.tags.length;
+
+        // Loads Tags if exist
+        for(var z = 0; z < lenTags; z++) {
+            for(var z = 0; z < lenTags; z++) {
+                $('#allTags', this.el)
+                    .append(new TagsDisplay({
+                        model: new Tags({
+                            name: this.model.attributes.tags[z]
+                        })
+                    }).render().el);
+                postCollection.at(z).on('fetch', this.render, this);
+            }
+        }
+        if(lenTags == 0) {
+            $('#allTags', this.el).html("No tags to display");
+        }
+
+        // Load Monitor Volume
+        if(this.model.attributes.type == "Buzz") {
+
+            // Monitor Volume
+            var lenMonitors = monitorResultsCollection.length;
+            var totalPosts = 0;
+
+            for(var z = 0; z < lenMonitors; z++) {
+                totalPosts += monitorResultsCollection.models[z]
+                                .attributes.numberOfDocuments;
+            }
+
+            $('#monResults').append("<h4>Monitor Results</h4><hr />");
+            $('#monResults').append("<p><label><strong>Total Volume:</strong></label> "+addCommas(totalPosts)+"</p>");
+
+        }
+
+        // Do stuff when something is clicked
+
+        // When custom filter added
+        $("#filterButton").click(function() {
+            that.newFilter = $("#filterText").val();
+            writeFilter(that.newFilter, that.typeFilter, that);
+            rerender(that);
+        });
+
+        // Select All Checkboxes
+        $("#selectAllSources").click(function() {
+            var ind = 0;
+            for(var s = 0; s < 11; s++) {
+                ind = that.checkedSources.indexOf($('.source')[s].value);
+                if(ind == -1) {
+                    that.checkedSources.push($('.source')[s].value);
+                }
+            }
+            writeFilter(that.newFilter, that.typeFilter, that);
+            rerender(that);
+        });
+
+        // Deselect All Checkboxes
+        $("#deselectAllSources").click(function() {
+            that.checkedSources = [];
+            that.typeFilter = "";
+            writeFilter(that.newFilter, that.typeFilter, that);
+            rerender(that);
+        });
+
+        $('#mentionsButton').click(function() {
+            that.renderMentions();
+        })
+
+
+    },
+    mentionsCounter: 0,
+    initRenderMentions: function() {
+
+        // Clear Mentions Space
+        $('#mentions').html("");
+
+        // Render Mentions
+        if(this.hasPosts) {
+            var counter = this.mentionsCounter;
+            for(var z = counter; z < (counter + 5); z++) {
+                $('#mentions', this.el)
+                    .append(new PostsDisplay({
+                        model: postCollection.at(z)
+                    }).render().el);
+                postCollection.at(z).on('fetch', this.render, this);
+            }
+            $("#mentions").scrollTop(100000);
+        } else {
+            $('#mentions', this.el).html("No mentions to display")
+        }
+
+        this.mentionsCounter = 0;
+    },
+    hasPosts: function() {
+        if(postCollection.length > 0) {
+            return true;
+        }
+        return false;
+    },
+    renderSentimentBar: function() {
+
+        if(this.hasPosts) {
             // Displays Labels
             $('#charts')
                 .append("<div id='senBar'></div>");
             $("#senBar")
                 .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
-
-            // Store all Category Names
-            postCollection.at(0)
-                .attributes
-                .categoryScores
-                .forEach(function (entry){
-                    allCats.push(entry.categoryName);
-                });
-
-            // Calculate Category Score Average
-            for(var s = 0; s < len; s++) {
-                for(var z = 0; z < allCats.length; z++) {
-                    if(allCatsScores[z] == undefined) {
-                            allCatsScores[z] = 0;
-                    }
-                    if(postCollection.at(s)
-                        .attributes.categoryScores.length > 0) {
-                            allCatsScores[z] += Math.round(postCollection.at(s)
-                                                    .attributes
-                                                    .categoryScores[z]
-                                                    .score * 10 ) / 10;
-                    }
-                }
-            }
-
-            // Get total count of scores and percentages
-            var totalCount = 0,
-                totPercentage = 0;
-
-            for(var z = 0; z < allCatsScores.length; z++) {
-                totalCount += allCatsScores[z];
-            }
-
-            for(var z = 0; z < allCats.length; z++) {
-                allCatsScores[z] /= totalCount;
-                allCatsScores[z] = ((allCatsScores[z]) * 100);
+            // Display Bars
+            for(var z = 0; z < postCollection.numCategories; z++) {
                 $('#senBar')
-                    .append("<div class='individualPiece' style='background-color: "+getColor(z)+";width: "+allCatsScores[z]+"%';></div>");
+                    .append("<div class='individualPiece' style='background-color: "+getColor(z)+";width: "+postCollection.perScores[z]+"%';></div>");
             }
             $('#senBar').append("<div class='clearfix'></div><br />");
-
-            // Add Legend
-            for(var z = 0; z < allCats.length; z++) {
-                $('#senBar').append("<small><label class='chart'><div class='square' style='background: "+getColor(z)+"'></div><b>"+allCats[z]+"</b></label>"+allCatsScores[z].toFixed(2)+"%</small><div class='clearfix'></div>");
+            // Display Legend
+            for(var z = 0; z < postCollection.numCategories; z++) {
+                $('#senBar').append("<small><label class='chart'><div class='square' style='background: "+getColor(z)+"'></div><b>"+postCollection.allCategories[z]+"</b></label>"+postCollection.perScores[z].toFixed(2)+"%</small><div class='clearfix'></div>");
             }
-
-        } // End Sentiment Analysis Bar
+        }
     },
     defaultDayData :  
     [
@@ -246,28 +317,6 @@ window.DetailsView = Backbone.View.extend({
         // End Tweet Time Adjust
 
     },
-    mentionsCounter: 0,
-    initRenderMentions: function() {
-        $('#mentions').html("");
-
-        // Loads Mentions if exist
-        var len = postCollection.length;
-
-        if(len > 0) {
-            for(var z = this.mentionsCounter; z < (this.mentionsCounter + 5); z++) {
-                $('#mentions', this.el)
-                    .append(new PostsDisplay({
-                        model: postCollection.at(z)
-                    }).render().el);
-                postCollection.at(z).on('fetch', this.render, this);
-            }
-            $("#mentions").scrollTop(100000);
-        } else {
-            $('#mentions', this.el).html("No mentions to display")
-        }
-
-        this.mentionsCounter = 0;
-    },
     renderMentions: function() {
 
         // Loads Mentions if exist
@@ -283,127 +332,6 @@ window.DetailsView = Backbone.View.extend({
             this.mentionsCounter += 5;
             $("#mentions").scrollTop(100000);
         }
-    },
-    initRender: function() {
-
-        $(this.el).html(this.template(this.model.toJSON()));
-
-        // Load correct navigation page
-        if(this.curNav == "genArea") {
-            this.genArea();
-        }
-        else if(this.curNav == "filArea") {
-            this.filArea();
-        }
-        else if(this.curNav == "statArea") {
-            this.statArea();
-        }
-
-        this.initRenderMentions();
-
-        this.loadTweetTimes();
-
-        // Render Chart
-        $('#charts').append("<p><strong>Hourly Breakdown</strong></p>");
-        $('#charts').append("<div id='timeChartDay' style='width: 50%; float:left'></div>");
-        $('#charts').append("<div id='timeChartNight' style='width: 50%; float:right'></div>");
-        $('#timeChartDay').chTimeChart({data: this.defaultDayData});
-        $('#timeChartNight').chTimeChart({day: false, data: this.defaultNightData});
-
-        this.render();
-        
-        this.renderSentimentBar();
-
-        var that = this;
-
-        // When a source is clicked, run:
-        $(".source").change(function() {
-            if(this.checked) {
-                that.checkedSources.push(this.value);
-            }
-            else
-            {
-                var indexToRemove = that.checkedSources.indexOf(this.value);
-                that.checkedSources.splice(indexToRemove, 1);
-            }
-
-            // Generates Type Filter, Complete Filter, and rerenders
-            genTypeFilter(that);
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
-        })
-
-        // Gets Number of Tags
-        var lenTags = this.model.attributes.tags.length;
-
-        // Loads Tags if exist
-        for(var z = 0; z < lenTags; z++) {
-            for(var z = 0; z < lenTags; z++) {
-                $('#allTags', this.el)
-                    .append(new TagsDisplay({
-                        model: new Tags({
-                            name: this.model.attributes.tags[z]
-                        })
-                    }).render().el);
-                postCollection.at(z).on('fetch', this.render, this);
-            }
-        }
-        if(lenTags == 0) {
-            $('#allTags', this.el).html("No tags to display");
-        }
-
-        // Load Monitor Volume
-        if(this.model.attributes.type == "Buzz") {
-
-            // Monitor Volume
-            var lenMonitors = monitorResultsCollection.length;
-            var totalPosts = 0;
-
-            for(var z = 0; z < lenMonitors; z++) {
-                totalPosts += monitorResultsCollection.models[z]
-                                .attributes.numberOfDocuments;
-            }
-
-            $('#monResults').append("<h4>Monitor Results</h4><hr />");
-            $('#monResults').append("<p><label><strong>Total Volume:</strong></label> "+addCommas(totalPosts)+"</p>");
-
-        }
-
-        // Do stuff when something is clicked
-
-        // When custom filter added
-        $("#filterButton").click(function() {
-            that.newFilter = $("#filterText").val();
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
-        });
-
-        // Select All Checkboxes
-        $("#selectAllSources").click(function() {
-            var ind = 0;
-            for(var s = 0; s < 11; s++) {
-                ind = that.checkedSources.indexOf($('.source')[s].value);
-                if(ind == -1) {
-                    that.checkedSources.push($('.source')[s].value);
-                }
-            }
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
-        });
-
-        // Deselect All Checkboxes
-        $("#deselectAllSources").click(function() {
-            that.checkedSources = [];
-            that.typeFilter = "";
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
-        });
-
-        $('#mentionsButton').click(function() {
-            that.renderMentions();
-        })
-
-
     },
     render: function () {
 
@@ -437,6 +365,42 @@ window.DetailsView = Backbone.View.extend({
         });
 
         return this;
+    },
+    genArea: function() {
+        // Display General Information Tab
+        $("#generalInformation").css("display", "block");
+        $("#filter").css("display", "none");
+        $("#monResults").css("display", "none");
+
+        $("#genButton").addClass("active");
+        $("#filButton").removeClass("active");
+        $("#statButton").removeClass("active");
+
+        this.curNav = "genArea";
+    },
+    filArea: function() {
+        // Display Filter Tab
+        $("#generalInformation").css("display", "none");
+        $("#filter").css("display", "block");
+        $("#monResults").css("display", "none");
+
+        $("#genButton").removeClass("active");
+        $("#filButton").addClass("active");
+        $("#statButton").removeClass("active");
+
+        this.curNav = "filArea";
+    },
+    statArea: function() {
+        // Display Monitor Statistics
+        $("#generalInformation").css("display", "none");
+        $("#filter").css("display", "none");
+        $("#monResults").css("display", "block");
+
+        $("#genButton").removeClass("active");
+        $("#filButton").removeClass("active");
+        $("#statButton").addClass("active");
+
+        this.curNav = "statArea";
     }
 
 });

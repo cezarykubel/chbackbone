@@ -144,13 +144,81 @@ window.Tags = Backbone.Model.extend({
 window.PostCollection = Backbone.Collection.extend({
 	model: Post,
 	url: null,
-	allCategories: [],
+	allCategories: [], 		// Array of All Categories
+	avgScores: [],			// Array of Average Scores
+	perScores: [],			// Array of Percentages
+	arrMentions: [],		// Array of Mentions
+	totalScores: 0,			// Total Number of Scores
+	numCategories: 0,		// Number of Categories
 	initialize: function(options) {
 		this.postID = options.postID;
 		this.url = "/api/monitor/posts?id=" + options.postID 
 					+ "&filter=" + options.filter 
 					+ "&extendLimit=false";
 		this.fetch();
+
+		var that = this;
+		this.on("sync", function(){
+
+			var singlePost = that.at(0),
+				singleAttr = singlePost.attributes;
+
+			var arrModels = that.models,
+				arrScores = [];
+
+			// Store All Category Names
+			that.allCategories = [];
+			var categoryNames = singleAttr.categoryScores.map(function(d) {
+				return d.categoryName;
+			});
+			that.allCategories = categoryNames;
+			// End
+
+			// Store Average Score
+			arrModels.map(function(d,i) {
+				d.attributes.categoryScores.map(function(d,i) {
+					if(arrScores[i] == undefined) {
+						arrScores[i] = 0;
+					}
+					arrScores[i] += d.score;
+				});
+			});
+			that.avgScores = arrScores;
+			// End
+
+			// Store Total Scores
+			var totalScores = that.avgScores.reduce(function(a,b){
+				return a+b;
+			});
+			that.totalScores = totalScores;
+			// End
+
+			// Store Number of Categories
+			that.numCategories = that.allCategories.length;
+			// End
+
+			// Store Score Percent
+			var arrPercents = arrScores.map(function(d){
+				return (d / totalScores) * 100;
+			});
+			that.perScores = arrPercents;
+			// End
+
+			// Store Initial Mentions
+			var arrMentions = [];
+			for(var i = 0; i < 5; i++) {
+				arrMentions.push(new PostsDisplay({
+                    model: postCollection.at(i)
+                    }).render().el)
+			}
+			that.arrMentions = arrMentions;
+			// End
+
+            that.trigger("ready");
+
+		}, this);
+		
+
 	},
 	parse: function(data){
 		return data.posts;
