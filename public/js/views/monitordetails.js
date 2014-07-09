@@ -251,7 +251,7 @@ window.DetailsView = Backbone.View.extend({
                         .transition()
                         .duration(750)
                         .style("fill", function(d) {
-                            return getColors(false, d.value, maxVal);
+                            return getColors(val, d.value, maxVal);
                         })
                         .attr("d", function(d) {
                             return makeArc(d.value,inRad, 0, width, scale, maxVal);
