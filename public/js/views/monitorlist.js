@@ -10,7 +10,6 @@ window.MonitorListView = Backbone.View.extend({
         var len = monitorCollection.length;
         
         for(var i = 0; i < len; i++) {
-
             $('#allMonitors', this.el)
                 .append(new MonitorListItemView({model: monitorCollection.at(i)}).render().el);
         }

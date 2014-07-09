@@ -102,8 +102,6 @@ window.DetailsView = Backbone.View.extend({
     },
     render: function () {
 
-        console.log(postCollection.length);
-
         // Re-adjust the Time Charts
         this.adjustTweetTimesChart(0);
         this.adjustTweetTimesChart(1);

@@ -22,11 +22,30 @@ var AppRouter = Backbone.Router.extend({
     },
 
     list: function (id) {
-        if (!this.monitorListView) {
-            this.monitorListView = new MonitorListView();
+        if (!window.monitorCollection) {
+            window.monitorCollection = new monitorCollection();
         }
-        $('#content').html(this.monitorListView.el);
-        this.headerView.selectMenuItem('list-menu');
+        var that = this;
+
+        if(!this.monitorListView) {
+
+            monitorCollection.on("sync", function(){
+
+                that.monitorListView = new MonitorListView();
+
+                $('#content').html(that.monitorListView.el);
+                that.headerView.selectMenuItem('list-menu');
+
+            });
+
+        }
+        else {
+
+            $('#content').html(this.monitorListView.el);
+            this.headerView.selectMenuItem('list-menu');
+
+        }
+        
     },
 
     about: function () {
