@@ -158,21 +158,75 @@ window.PostCollection = Backbone.Collection.extend({
 	numCategories: 0,		// Number of Categories
 	defaultNightData: [],
 	defaultDayData: [],
+	filter: "",
+	checkedSources: [],
 	initialize: function(options) {
-		this.postID = options.postID;
-		this.url = "/api/monitor/posts?id=" + options.postID 
-					+ "&filter=" + options.filter 
+		this.checkedSources = [
+			"Twitter", "Facebook",    "Instagram",
+	        "YouTube", "Google Plus", "Weibo",
+	        "Reviews", "News",        "Comments",
+	        "Blogs",   "Forums"
+	    ];
+	    this.postID = options.postID
+		
+	    var that = this;
+
+		var filter = this.writeFilter(this, this.checkedSources);
+
+		this.url = "/api/monitor/posts?id=" + this.postID
+					+ "&filter=" + filter
 					+ "&extendLimit=false";
+
+		this.fetch();
+		this.once("sync", function(){
+			that.adjustData(that);
+			postCollection.trigger("ready");
+
+		});
+
+
+	},
+	rerender: function() {
+
+		var filter = this.writeFilter(this, this.checkedSources);
+
+		this.url = "/api/monitor/posts?id=" + this.postID
+			+ "&filter=" + filter
+			+ "&extendLimit=false";
+
 		this.fetch();
 
 		var that = this;
-		this.on("sync", function(){
+		this.once("sync", function(){
 
-			var singlePost = that.at(0),
-				singleAttr = singlePost.attributes;
+			var dur = 300;
+
+			if(postCollection.length > 0) {
+				$('#charts').show(dur);
+				$('#allPosts').show(dur);
+				$('.error').html("");
+
+				that.adjustData(that);
+				postCollection.trigger("reready");
+			}
+			else {
+				$('#charts').hide(dur);
+				$('#allPosts').hide(dur);
+				$('.error').html("<strong>Warning:</strong> There was no data found.  Please re-adjust your filters or <a href='#'>contact Alex</a>.  Or both.");
+			}
+			
+		});
+		
+	},
+	adjustData: function(that) {
+
+		if(postCollection.length > 0) {
+
+			var singlePost = that.at(0);
+			var	singleAttr = singlePost.attributes;
 
 			var arrModels = that.models,
-				arrScores = [];
+				arrScores = [0];
 
 			// Store All Category Names
 			that.allCategories = [];
@@ -216,8 +270,8 @@ window.PostCollection = Backbone.Collection.extend({
 			var arrMentions = [];
 			for(var i = 0; i < 5; i++) {
 				arrMentions.push(new PostsDisplay({
-                    model: postCollection.at(i)
-                    }).render().el)
+	                model: postCollection.at(i)
+	                }).render().el)
 			}
 			that.arrMentions = arrMentions;
 			// End
@@ -237,6 +291,7 @@ window.PostCollection = Backbone.Collection.extend({
 	        { "time" : 10 , value : 0 },
 	        { "time" : 11 , value : 0  }
 	    	];
+
 			that.defaultNightData = [
 	        { "time" : 12 , value : 0  },
 	        { "time" : 1  , value : 0  },
@@ -251,6 +306,7 @@ window.PostCollection = Backbone.Collection.extend({
 	        { "time" : 10 , value : 0 },
 	        { "time" : 11 , value : 0  }
 	    	];
+
 			arrModels.map(function(d) {
 				var date = new Date(d.attributes.date);
 				var UTCHours = date.getUTCHours();
@@ -264,16 +320,50 @@ window.PostCollection = Backbone.Collection.extend({
 			});
 			// End
 
-            that.trigger("ready");
-
-		}, this);
+		}
 		
-
 	},
 	parse: function(data){
 		return data.posts;
+	},
+	addSource: function(source) {
+		this.checkedSources.push(source);
+		this.rerender();
+	},
+	removeSource: function(source) {
+		var indexToRm = this.checkedSources.indexOf(source);
+        this.checkedSources.splice(indexToRm, 1);
+        this.rerender();
+	},
+	writeFilter: function(that, checkedSources){
+
+		var typeFilter = "";
+	    for(var z = 0; z < that.checkedSources.length; z++) {
+	        if(z == 0) {
+	            typeFilter = "type:" + that.checkedSources[0];
+	        }
+	        else {
+	            typeFilter += "," + that.checkedSources[z];
+	        }
+	    }
+	    if(that.checkedSources.length == 0) {
+	        that.typeFilter = "";
+	    }
+
+		if(that.filter == "") {
+	        return typeFilter;
+	    } else if(typeFilter == "") {
+	        return that.filter;
+	    } else if(that.filter != "" && typeFilter != ""){
+	        return typeFilter + "|" + that.filter;
+	    }
+	},
+	genTypeFilter: function(that) {
+
+		
+
 	}
-});
+}); 
 
 window.MonitorResults = Backbone.Model.extend({
 	defaults: {

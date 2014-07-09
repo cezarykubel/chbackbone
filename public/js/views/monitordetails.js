@@ -10,8 +10,7 @@ window.DetailsView = Backbone.View.extend({
     filter: "",             // Final Filter being passed to Collection
     newFilter: "",          // Custom Filter Box
     typeFilter: "",         // Sources Filter
-    curNav: "genArea",      // Starts at General Information
-    checkedSources: [],     // Sources Tracker
+    curNav: "genArea",      // Starts at General Information    
     events: {
         'click li#genButton': 'genArea',
         'click li#filButton': 'filArea',
@@ -32,12 +31,21 @@ window.DetailsView = Backbone.View.extend({
                 postID: viewId
         });
 
+        var that = this;
+
         postCollection.on("ready", function() {
-            this.checkedSources = [];
-            this.initRender();
+            that.initRender();
+        }, this);
+
+        postCollection.on("reready", function() {
+            rerender(that);
         }, this);
     },
     initRender: function() {
+
+        console.log("Init Render"); 
+
+        var that = this;
 
         // Page Structure
         $(this.el).html(this.template(this.model.toJSON()));
@@ -48,18 +56,8 @@ window.DetailsView = Backbone.View.extend({
         // Render Inital Mentions
         this.initRenderMentions();
 
-        console.log(postCollection.defaultDayData);
-
-        // Render Chart
-        $('#charts').append(timeChartLabels);
-        $('#timeChartDay').chTimeChart({
-            data: postCollection.defaultDayData
-        });
-        $('#timeChartNight').chTimeChart({
-            day: false, 
-            data: postCollection.defaultNightData
-        });
-        // End
+        // Render Time Charts
+        that.renderTimeCharts();
 
         // Renders Rest of Page
         this.render();
@@ -68,25 +66,14 @@ window.DetailsView = Backbone.View.extend({
         this.renderSentimentBar();
 
         // When a source is clicked, run:
-        var that = this;
         $(".source").change(function() {
-
-            // Array of Checked Sources
-            var arrSources = that.checkedSources;
-
-            if(this.checked) { 
-                arrSources.push(this.value);
+            if(this.checked) {
+                postCollection.addSource(this.value);
             } 
             else
             {
-                var indexToRm = arrSources.indexOf(this.value);
-                arrSources.splice(indexToRm, 1);
+                postCollection.removeSource(this.value);
             }
-
-            // Generates Type Filter, Complete Filter, and rerenders
-            genTypeFilter(that);
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
         })
         // End
 
@@ -112,9 +99,9 @@ window.DetailsView = Backbone.View.extend({
         $("#selectAllSources").click(function() {
             var ind = 0;
             for(var s = 0; s < 11; s++) {
-                ind = that.checkedSources.indexOf($('.source')[s].value);
+                ind = postCollection.checkedSources.indexOf($('.source')[s].value);
                 if(ind == -1) {
-                    that.checkedSources.push($('.source')[s].value);
+                    postCollection.checkedSources.push($('.source')[s].value);
                 }
             }
             writeFilter(that.newFilter, that.typeFilter, that);
@@ -123,7 +110,7 @@ window.DetailsView = Backbone.View.extend({
 
         // Deselect All Checkboxes
         $("#deselectAllSources").click(function() {
-            that.checkedSources = [];
+            postCollection.checkedSources = [];
             that.typeFilter = "";
             writeFilter(that.newFilter, that.typeFilter, that);
             rerender(that);
@@ -183,6 +170,20 @@ window.DetailsView = Backbone.View.extend({
             }
         }
     },
+    renderTimeCharts: function() {
+
+         // Render Chart
+        $('#charts').append(timeChartLabels);
+        $('#timeChartDay').chTimeChart({
+            data: postCollection.defaultDayData
+        });
+        $('#timeChartNight').chTimeChart({
+            day: false, 
+            data: postCollection.defaultNightData
+        });
+        // End
+
+    },
     adjustTweetTimesChart: function(val) {
 
         var data = [];
@@ -238,7 +239,7 @@ window.DetailsView = Backbone.View.extend({
                     .append(new PostsDisplay({
                         model: postCollection.at(z)
                     }).render().el);
-                postCollection.at(z).on('fetch', this.render, this);
+                //postCollection.at(z).on('fetch', this.render, this);
             }
             this.mentionsCounter += 5;
             $("#mentions").scrollTop(100000);
@@ -260,9 +261,10 @@ window.DetailsView = Backbone.View.extend({
         });
 
         // Checks Checkboxes
-        for(var z = 0; z < this.checkedSources.length; z++) {
+        for(var z = 0; z < postCollection.checkedSources.length; z++) {
             for(var s = 0; s < 11; s++) {
-                if($('.source')[s].value == this.checkedSources[z]) {
+                
+                if($('.source')[s].value == postCollection.checkedSources[z]) {
                     $('.source')[s].checked = "checked";
                 }
             }
@@ -342,52 +344,19 @@ function addCommas(nStr)
     return x1 + x2;
 }
 
-function writeFilter(newFilter, typeFilter, that) {
-    if(newFilter == "") {
-        that.filter = typeFilter;
-    } else if(typeFilter == "") {
-        that.filter = newFilter;
-    } else if(newFilter != "" && typeFilter != ""){
-        that.filter = typeFilter + "|" + newFilter;
-    }
-}
-
-function genTypeFilter(that) {
-    var typeFilter = "";
-    for(var z = 0; z < that.checkedSources.length; z++) {
-        if(z == 0) {
-            typeFilter = "type:" + that.checkedSources[0];
-        }
-        else {
-            typeFilter += "," + that.checkedSources[z];
-        }
-        that.typeFilter = typeFilter;
-    }
-    if(that.checkedSources.length == 0) {
-        that.typeFilter = "";
-    }
-}
 function rerender(that) {
-    window.postCollection = new PostCollection({
-        postID: that.model.id, 
-        filter: that.filter
-    });
-    postCollection.on("sync", function() {
 
-        var len = postCollection.length;
+    var len = postCollection.length;
 
-        if(len > 0) {
-            //that.loadTweetTimes();
-            that.render();
-            that.initRenderMentions();
-            $('#mentionsButton').css("display", "block");
-        }
-        else {
-            $('#mentions', that.el).html("No mentions to display");
-            $('#mentionsButton').css("display", "none");
-        }
-
-    }, that);
+    if(len > 0) {
+        that.render();
+        that.initRenderMentions();
+        $('#mentionsButton').css("display", "block");
+    }
+    else {
+        $('#mentions', that.el).html("No mentions to display");
+        $('#mentionsButton').css("display", "none");
+    }
 }
 
 function makeArc(d, inRad, outRadius, width, scale, maxVal){
