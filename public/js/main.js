@@ -29,20 +29,25 @@ var AppRouter = Backbone.Router.extend({
 
         if(!this.monitorListView) {
 
-            monitorCollection.on("sync", function(){
+            that.monitorListView = new MonitorListView();
 
-                that.monitorListView = new MonitorListView();
+            monitorCollection.on("sync", function(){
 
                 $('#content').html(that.monitorListView.el);
                 that.headerView.selectMenuItem('list-menu');
 
             });
 
+            $('#content').html(that.monitorListView.el);
+            that.headerView.selectMenuItem('list-menu');
+
         }
         else {
 
-            $('#content').html(this.monitorListView.el);
-            this.headerView.selectMenuItem('list-menu');
+            that.monitorListView = new MonitorListView();
+
+            $('#content').html(that.monitorListView.el);
+            that.headerView.selectMenuItem('list-menu');
 
         }
         
@@ -57,10 +62,41 @@ var AppRouter = Backbone.Router.extend({
     },
 
     details: function (id) {
-        var monitor = monitorCollection.get(id);
-        $("#content").html(new DetailsView({
-            model: monitor
-        }).el)
+
+        if (!window.monitorCollection) {
+            window.monitorCollection = new monitorCollection();
+        }
+        var that = this;
+
+        if(!this.monitorListView) {
+
+            that.monitorListView = new MonitorListView();
+
+            monitorCollection.on("sync", function(){
+
+                var monitor = monitorCollection.get(id);
+                $("#content").html(new DetailsView({
+                    model: monitor
+                }).el)
+
+            });
+
+            var monitor = monitorCollection.get(id);
+            $("#content").html(new DetailsView({
+                model: monitor
+            }).el)
+
+        }
+        else {
+
+            that.monitorListView = new MonitorListView();
+
+            var monitor = monitorCollection.get(id);
+            $("#content").html(new DetailsView({
+                model: monitor
+            }).el)
+
+        }
     }
 
 });
