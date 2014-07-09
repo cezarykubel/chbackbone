@@ -25,10 +25,12 @@ window.DetailsView = Backbone.View.extend({
 
         var that = this;
 
+        // Initial Render
         postCollection.on("ready", function() {
             that.initRender();
         }, this);
 
+        // Every Render After
         postCollection.on("reready", function() {
             rerender(that);
         }, this);
@@ -67,9 +69,11 @@ window.DetailsView = Backbone.View.extend({
         // End
 
         // Generate Tags
-        var modelAttr = this.model.attributes;
-        var lenTags = modelAttr.tags.length;
+        var modelAttr = this.model.attributes,
+            lenTags = modelAttr.tags.length;
+
         $('#allTags').append(modelAttr.tagsDisplay);
+
         if(lenTags == 0) {
             $('#allTags', this.el).html("No tags to display");
         }
@@ -80,7 +84,6 @@ window.DetailsView = Backbone.View.extend({
             var newFilter = $("#filterText").val();
             postCollection.changeFilter(newFilter);
         });
-        // End
 
         // Select All Checkboxes
         $("#selectAllSources").click(function() {
@@ -92,11 +95,61 @@ window.DetailsView = Backbone.View.extend({
             postCollection.uncheckAllSources();
         });
 
+        // Load More Mentions Button
         $('#mentionsButton').click(function() {
             that.renderMentions();
         })
+    },
+    render: function () {
 
+        console.log(postCollection.length);
 
+        // Re-adjust the Time Charts
+        this.adjustTweetTimesChart(0);
+        this.adjustTweetTimesChart(1);
+
+        // Keep current filter
+        $("#filterText").text(this.newFilter);
+
+        // Reset Button
+        $("#clearFilter").click(function() {
+            postCollection.changeFilter("");
+            $("#filterText").text("");
+        });
+
+        // Checks Checkboxes
+        var source = $('.source'),
+            postSources = postCollection.checkedSources,
+            sourceLength = postSources.length;
+
+        for(var z = 0; z < sourceLength; z++) {
+            for(var s = 0; s <= 10; s++) {
+                if(source[s].value == postSources[z]) {
+                    source[s].checked = "checked";
+                }
+            }
+        }
+
+        // Deselect ALL Checkboxes
+        if(sourceLength == 0) {
+            for(var i = 0; i < 11; i++) {
+                source[i].checked = false;
+            }
+        }
+
+        // Show tooltip
+        $('#filters').popover({
+            html:true,
+            title: 'Possible Filters'
+        });
+
+        return this;
+    },
+    hasPosts: function() {
+        if(postCollection.length > 0) {
+            return true;
+        }
+        return false;
     },
     mentionsCounter: 0,
     initRenderMentions: function() {
@@ -112,7 +165,6 @@ window.DetailsView = Backbone.View.extend({
                     .append(new PostsDisplay({
                         model: postCollection.at(z)
                     }).render().el);
-                postCollection.at(z).on('fetch', this.render, this);
             }
             $("#mentions").scrollTop(100000);
         } else {
@@ -120,11 +172,21 @@ window.DetailsView = Backbone.View.extend({
         }
         this.mentionsCounter = 0;
     },
-    hasPosts: function() {
-        if(postCollection.length > 0) {
-            return true;
+    renderMentions: function() {
+
+        // Loads Mentions if exist
+        var len = postCollection.length;
+        if(len > 0) {
+            for(var z = this.mentionsCounter + 5; z < (this.mentionsCounter + 10); z++) {
+                $('#mentions', this.el)
+                    .append(new PostsDisplay({
+                        model: postCollection.at(z)
+                    }).render().el);
+                //postCollection.at(z).on('fetch', this.render, this);
+            }
+            this.mentionsCounter += 5;
+            $("#mentions").scrollTop(100000);
         }
-        return false;
     },
     renderSentimentBar: function() {
 
@@ -205,59 +267,6 @@ window.DetailsView = Backbone.View.extend({
         // End Tweet Time Adjust
 
     },
-    renderMentions: function() {
-
-        // Loads Mentions if exist
-        var len = postCollection.length;
-        if(len > 0) {
-            for(var z = this.mentionsCounter + 5; z < (this.mentionsCounter + 10); z++) {
-                $('#mentions', this.el)
-                    .append(new PostsDisplay({
-                        model: postCollection.at(z)
-                    }).render().el);
-                //postCollection.at(z).on('fetch', this.render, this);
-            }
-            this.mentionsCounter += 5;
-            $("#mentions").scrollTop(100000);
-        }
-    },
-    render: function () {
-
-        this.adjustTweetTimesChart(0);
-        this.adjustTweetTimesChart(1);
-
-        // Keep current filter
-        $("#filterText").text(this.newFilter);
-
-        // Reset Button
-        $("#clearFilter").click(function() {
-            postCollection.changeFilter("");
-            $("#filterText").text("");
-        });
-
-        // Checks Checkboxes
-        for(var z = 0; z < postCollection.checkedSources.length; z++) {
-            console.log("Run");
-            for(var s = 0; s <= 10; s++) {
-                if($('.source')[s].value == postCollection.checkedSources[z]) {
-                    $('.source')[s].checked = "checked";
-                }
-            }
-        }
-        if(postCollection.checkedSources.length == 0) {
-            for(var i = 0; i < 11; i++) {
-                $('.source')[i].checked = false;
-            }
-        }
-
-        // Show tooltip
-        $('#filters').popover({
-            html:true,
-            title: 'Possible Filters'
-        });
-
-        return this;
-    },
     genArea: function() {
         // Display General Information Tab
         $("#generalInformation").css("display", "block");
@@ -309,19 +318,6 @@ function getColor(index) {
                     "#ffc130", "#fff100","#57b6dd","#439dc0",
                     "#1b75bb","#10698B"];
     return radcolor[index];
-}
-
-function addCommas(nStr)
-{
-    nStr += '';
-    x = nStr.split('.');
-    x1 = x[0];
-    x2 = x.length > 1 ? '.' + x[1] : '';
-    var rgx = /(\d+)(\d{3})/;
-    while (rgx.test(x1)) {
-        x1 = x1.replace(rgx, '$1' + ',' + '$2');
-    }
-    return x1 + x2;
 }
 
 function rerender(that) {

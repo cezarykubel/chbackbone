@@ -181,10 +181,27 @@ window.PostCollection = Backbone.Collection.extend({
 		this.once("sync", function(){
 			that.adjustData(that);
 			postCollection.trigger("ready");
-
+			that.moreData();
 		});
 
 
+	},
+	moreData: function() {
+		var filter = this.writeFilter();
+
+		this.url = "/api/monitor/posts?id=" + this.postID
+			+ "&filter=" + filter
+			+ "&extendLimit=true";
+
+		this.fetch();
+
+		var that = this;
+		this.once("sync", function(){
+
+			that.adjustData(that);
+			postCollection.trigger("reready");
+
+		});
 	},
 	rerender: function() {
 
@@ -215,6 +232,7 @@ window.PostCollection = Backbone.Collection.extend({
 			}
 
 			postCollection.trigger("reready");
+			that.moreData();
 			
 		});
 		
