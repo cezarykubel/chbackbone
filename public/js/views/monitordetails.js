@@ -6,10 +6,6 @@ var timeChartLabels =
 
 // Views
 window.DetailsView = Backbone.View.extend({
-
-    filter: "",             // Final Filter being passed to Collection
-    newFilter: "",          // Custom Filter Box
-    typeFilter: "",         // Sources Filter
     curNav: "genArea",      // Starts at General Information    
     events: {
         'click li#genButton': 'genArea',
@@ -27,10 +23,6 @@ window.DetailsView = Backbone.View.extend({
             filter: this.filter
         });
 
-        window.monitorResultsCollection = new MonitorResultsCollection({
-                postID: viewId
-        });
-
         var that = this;
 
         postCollection.on("ready", function() {
@@ -42,9 +34,6 @@ window.DetailsView = Backbone.View.extend({
         }, this);
     },
     initRender: function() {
-
-        console.log("Init Render"); 
-
         var that = this;
 
         // Page Structure
@@ -80,9 +69,7 @@ window.DetailsView = Backbone.View.extend({
         // Generate Tags
         var modelAttr = this.model.attributes;
         var lenTags = modelAttr.tags.length;
-
         $('#allTags').append(modelAttr.tagsDisplay);
-
         if(lenTags == 0) {
             $('#allTags', this.el).html("No tags to display");
         }
@@ -90,30 +77,19 @@ window.DetailsView = Backbone.View.extend({
 
         // When custom filter added
         $("#filterButton").click(function() {
-            that.newFilter = $("#filterText").val();
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
+            var newFilter = $("#filterText").val();
+            postCollection.changeFilter(newFilter);
         });
+        // End
 
         // Select All Checkboxes
         $("#selectAllSources").click(function() {
-            var ind = 0;
-            for(var s = 0; s < 11; s++) {
-                ind = postCollection.checkedSources.indexOf($('.source')[s].value);
-                if(ind == -1) {
-                    postCollection.checkedSources.push($('.source')[s].value);
-                }
-            }
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
+            postCollection.checkAllSources();
         });
 
         // Deselect All Checkboxes
         $("#deselectAllSources").click(function() {
-            postCollection.checkedSources = [];
-            that.typeFilter = "";
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
+            postCollection.uncheckAllSources();
         });
 
         $('#mentionsButton').click(function() {
@@ -255,18 +231,22 @@ window.DetailsView = Backbone.View.extend({
 
         // Reset Button
         $("#clearFilter").click(function() {
-            that.newFilter = "";
-            writeFilter(that.newFilter, that.typeFilter, that);
-            rerender(that);
+            postCollection.changeFilter("");
+            $("#filterText").text("");
         });
 
         // Checks Checkboxes
         for(var z = 0; z < postCollection.checkedSources.length; z++) {
-            for(var s = 0; s < 11; s++) {
-                
+            console.log("Run");
+            for(var s = 0; s <= 10; s++) {
                 if($('.source')[s].value == postCollection.checkedSources[z]) {
                     $('.source')[s].checked = "checked";
                 }
+            }
+        }
+        if(postCollection.checkedSources.length == 0) {
+            for(var i = 0; i < 11; i++) {
+                $('.source')[i].checked = false;
             }
         }
 

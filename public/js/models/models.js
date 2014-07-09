@@ -171,7 +171,7 @@ window.PostCollection = Backbone.Collection.extend({
 		
 	    var that = this;
 
-		var filter = this.writeFilter(this, this.checkedSources);
+		var filter = this.writeFilter();
 
 		this.url = "/api/monitor/posts?id=" + this.postID
 					+ "&filter=" + filter
@@ -188,7 +188,7 @@ window.PostCollection = Backbone.Collection.extend({
 	},
 	rerender: function() {
 
-		var filter = this.writeFilter(this, this.checkedSources);
+		var filter = this.writeFilter();
 
 		this.url = "/api/monitor/posts?id=" + this.postID
 			+ "&filter=" + filter
@@ -201,19 +201,20 @@ window.PostCollection = Backbone.Collection.extend({
 
 			var dur = 300;
 
-			if(postCollection.length > 0) {
+			if(postCollection.length > 0 && this.checkedSources.length > 0) {
 				$('#charts').show(dur);
 				$('#allPosts').show(dur);
 				$('.error').html("");
-
 				that.adjustData(that);
-				postCollection.trigger("reready");
+
 			}
 			else {
 				$('#charts').hide(dur);
 				$('#allPosts').hide(dur);
 				$('.error').html("<strong>Warning:</strong> There was no data found.  Please re-adjust your filters or <a href='#'>contact Alex</a>.  Or both.");
 			}
+
+			postCollection.trigger("reready");
 			
 		});
 		
@@ -333,35 +334,45 @@ window.PostCollection = Backbone.Collection.extend({
 	removeSource: function(source) {
 		var indexToRm = this.checkedSources.indexOf(source);
         this.checkedSources.splice(indexToRm, 1);
-        this.rerender();
+		this.rerender();
+        
 	},
-	writeFilter: function(that, checkedSources){
-
+	changeFilter: function(newFilter) {
+		this.filter = newFilter;
+		this.writeFilter()
+		this.rerender();
+	},
+	checkAllSources: function() {
+		this.checkedSources = [
+			"Twitter", "Facebook",    "Instagram",
+	        "YouTube", "Google Plus", "Weibo",
+	        "Reviews", "News",        "Comments",
+	        "Blogs",   "Forums"
+	    ];
+	    this.rerender();
+	},
+	uncheckAllSources: function() {
+		this.checkedSources = [];
+	    this.rerender();
+	},
+	writeFilter: function(){
 		var typeFilter = "";
-	    for(var z = 0; z < that.checkedSources.length; z++) {
+	    for(var z = 0; z < this.checkedSources.length; z++) {
 	        if(z == 0) {
-	            typeFilter = "type:" + that.checkedSources[0];
+	            typeFilter = "type:" + this.checkedSources[0];
 	        }
 	        else {
-	            typeFilter += "," + that.checkedSources[z];
+	            typeFilter += "," + this.checkedSources[z];
 	        }
 	    }
-	    if(that.checkedSources.length == 0) {
-	        that.typeFilter = "";
-	    }
 
-		if(that.filter == "") {
+		if(this.filter == "") {
 	        return typeFilter;
 	    } else if(typeFilter == "") {
-	        return that.filter;
-	    } else if(that.filter != "" && typeFilter != ""){
-	        return typeFilter + "|" + that.filter;
+	        return this.filter;
+	    } else if(this.filter != "" && typeFilter != ""){
+	        return typeFilter + "|" + this.filter;
 	    }
-	},
-	genTypeFilter: function(that) {
-
-		
-
 	}
 }); 
 
