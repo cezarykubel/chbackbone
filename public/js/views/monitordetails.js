@@ -102,6 +102,8 @@ window.DetailsView = Backbone.View.extend({
     },
     render: function () {
 
+        this.adjustSentimentBar();
+
         // Re-adjust the Time Charts
         this.adjustTweetTimesChart(0);
         this.adjustTweetTimesChart(1);
@@ -204,6 +206,22 @@ window.DetailsView = Backbone.View.extend({
             for(var z = 0; z < postCollection.numCategories; z++) {
                 $('#senBar').append("<small><label class='chart'><div class='square' style='background: "+getColor(z)+"'></div><b>"+postCollection.allCategories[z]+"</b></label>"+postCollection.perScores[z].toFixed(2)+"%</small><div class='clearfix'></div>");
             }
+        }
+    },
+    adjustSentimentBar: function() {
+        $('#senBar').html("");
+        $("#senBar")
+            .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
+        // Display Bars
+        for(var z = 0; z < postCollection.numCategories; z++) {
+            $('#senBar')
+                .append("<div class='individualPiece' style='background-color: "+getColor(z)+";width: "+postCollection.perScores[z]+"%';></div>");
+        }
+
+        $('#senBar').append("<div class='clearfix'></div><br />");
+        // Display Legend
+        for(var z = 0; z < postCollection.numCategories; z++) {
+            $('#senBar').append("<small><label class='chart'><div class='square' style='background: "+getColor(z)+"'></div><b>"+postCollection.allCategories[z]+"</b></label>"+postCollection.perScores[z].toFixed(2)+"%</small><div class='clearfix'></div>");
         }
     },
     renderTimeCharts: function() {
