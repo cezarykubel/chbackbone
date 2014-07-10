@@ -158,6 +158,7 @@ window.PostCollection = Backbone.Collection.extend({
 	numCategories: 0,		// Number of Categories
 	defaultNightData: [],
 	defaultDayData: [],
+	arrSentimentBar: [],
 	filter: "",
 	checkedSources: [],
 	initialize: function(options) {
@@ -267,6 +268,23 @@ window.PostCollection = Backbone.Collection.extend({
 			that.avgScores = arrScores;
 			// End
 
+			// Fill Vars for Sentiment Analysis
+			var indexOfPos = searchStringInArray("Positive", that.allCategories);
+			var indexOfNeu = searchStringInArray("Neutral", that.allCategories);
+			var indexOfNeg = searchStringInArray("Negative", that.allCategories);
+			
+			var posSen = that.avgScores[indexOfPos],
+				neuSen = that.avgScores[indexOfNeu],
+			 	negSen = that.avgScores[indexOfNeg];
+
+
+			that.arrSentimentBar = [
+				{type: "Positive", value: posSen},
+				{type: "Neutral", value: neuSen},
+				{type: "Negative", value: negSen}
+			];
+			//End
+
 			// Store Total Scores
 			var totalScores = that.avgScores.reduce(function(a,b){
 				return a+b;
@@ -284,6 +302,8 @@ window.PostCollection = Backbone.Collection.extend({
 			});
 			that.perScores = arrPercents;
 			// End
+
+			console.log(that);
 
 			// Store Initial Mentions
 			var arrMentions = [];
@@ -420,4 +440,10 @@ window.MonitorResultsCollection = Backbone.Collection.extend({
 });
 function firstCharUpperCase(string) {
 	return (string.charAt(0).toUpperCase() + string.slice(1).toLowerCase());
+}
+function searchStringInArray (str, strArray) {
+    for (var j=0; j<strArray.length; j++) {
+        if (strArray[j].match(str)) return j;
+    }
+    return -1;
 }

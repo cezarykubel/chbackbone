@@ -191,37 +191,54 @@ window.DetailsView = Backbone.View.extend({
     renderSentimentBar: function() {
 
         if(this.hasPosts) {
-            // Displays Labels
-            $('#charts')
-                .append("<div id='senBar'></div>");
-            $("#senBar")
-                .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
+
+            if(this.model.attributes.type!="BUZZ"){
+                // Displays Labels
+                $('#charts')
+                    .append("<div id='senBar'></div>");
+                $("#senBar")
+                    .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
+                // Display Bars
+                for(var z = 0; z < postCollection.numCategories; z++) {
+                    $('#senBar')
+                        .append("<div class='individualPiece' style='background-color: "+getColor(z)+";width: "+postCollection.perScores[z]+"%';></div>");
+                }
+                $('#senBar').append("<div class='clearfix'></div><br />");
+                // Display Legend
+                for(var z = 0; z < postCollection.numCategories; z++) {
+                    $('#senBar').append("<small><label class='chart'><div class='square' style='background: "+getColor(z)+"'></div><b>"+postCollection.allCategories[z]+"</b></label>"+postCollection.perScores[z].toFixed(2)+"%</small><div class='clearfix'></div>");
+                }
+            } 
+            else {
+                $('#charts').append("<div id='d3senBar'></div>");
+                if($('#d3senBar').html == ""){
+                    $('#d3senBar').chOneBar({data: postCollection.arrSentimentBar});
+                }
+            }
+        }
+    },
+    adjustSentimentBar: function() {
+        $('#senBar').html("");
+        $('#d3senBar').html("");
+        $("#senBar")
+            .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
+
+        if(this.model.attributes.type != "BUZZ") {
             // Display Bars
             for(var z = 0; z < postCollection.numCategories; z++) {
                 $('#senBar')
                     .append("<div class='individualPiece' style='background-color: "+getColor(z)+";width: "+postCollection.perScores[z]+"%';></div>");
             }
+
             $('#senBar').append("<div class='clearfix'></div><br />");
             // Display Legend
             for(var z = 0; z < postCollection.numCategories; z++) {
                 $('#senBar').append("<small><label class='chart'><div class='square' style='background: "+getColor(z)+"'></div><b>"+postCollection.allCategories[z]+"</b></label>"+postCollection.perScores[z].toFixed(2)+"%</small><div class='clearfix'></div>");
             }
         }
-    },
-    adjustSentimentBar: function() {
-        $('#senBar').html("");
-        $("#senBar")
-            .append("<p id='senTitle'><strong>Sentiment Analysis</strong></p>");
-        // Display Bars
-        for(var z = 0; z < postCollection.numCategories; z++) {
-            $('#senBar')
-                .append("<div class='individualPiece' style='background-color: "+getColor(z)+";width: "+postCollection.perScores[z]+"%';></div>");
-        }
-
-        $('#senBar').append("<div class='clearfix'></div><br />");
-        // Display Legend
-        for(var z = 0; z < postCollection.numCategories; z++) {
-            $('#senBar').append("<small><label class='chart'><div class='square' style='background: "+getColor(z)+"'></div><b>"+postCollection.allCategories[z]+"</b></label>"+postCollection.perScores[z].toFixed(2)+"%</small><div class='clearfix'></div>");
+        else {
+            $('#charts').append("<div id='d3senBar'></div>");
+            $('#d3senBar').chOneBar({data: postCollection.arrSentimentBar});
         }
     },
     renderTimeCharts: function() {

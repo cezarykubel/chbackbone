@@ -838,8 +838,6 @@ $.fn.chTimeChart = function( options ) {
         	var chartWidth = document.getElementById(chart).offsetWidth;
         	scale = chartWidth / totalVolume;
 
-        	console.log(scale);
-
         	var posWidth = ((settings.data[0].value * scale) / chartWidth) * 100,
         		neuWidth = ((settings.data[1].value * scale) / chartWidth) * 100,
         		negWidth = ((settings.data[2].value * scale) / chartWidth) * 100;
@@ -913,7 +911,8 @@ $.fn.chTimeChart = function( options ) {
 		}
 
 		function formatNumber(val) {
-			return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+			val = val.toFixed(0);
+			return (val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
 		}
 
     };
