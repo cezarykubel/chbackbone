@@ -20,10 +20,10 @@ The chBackbone Project is a powerful dashboard called ForSight Explorer that is 
 
 In order to use ForSight Explorer, you must have access to the Crimson Hexagon API.  
 
-  1.)  Rename config.js.example -> config.js
-  2.)  Change `user` and `pass` values
-  3.)  Optional:  Change the start and end parameters
-  4.)  Save!
+1. Rename config.js.example -> config.js
+2.  Change `user` and `pass` values
+3.  Optional:  Change the start and end parameters
+4.  Save!
 
 **Usage**
 
