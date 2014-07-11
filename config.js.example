@@ -1,7 +1,11 @@
+var date = new Date();
+var day = date.getDate();
+var month = date.getMonth() + 1;
+var year = date.getFullYear();
 module.exports = {
-    base : 'https://qa.crimsonhexagon.com/api/',
-    params : '?version=3',
-    user : 'api user',
-    pass : 'password"
+    base : 'https://forsight.crimsonhexagon.com/api/',
+    params : '?version=3&start=2011-01-01&end='+year+'-'+month+'-' + day,
+    user : 'apiuser2',
+    pass : 't71Ygiu8xBVq2ujrTmu6',
     debug : true
 };
