@@ -5,7 +5,7 @@ var year = date.getFullYear();
 module.exports = {
     base : 'https://forsight.crimsonhexagon.com/api/',
     params : '?version=3&start=2011-01-01&end='+year+'-'+month+'-' + day,
-    user : 'apiuser2',
-    pass : 't71Ygiu8xBVq2ujrTmu6',
+    user : '{username}',
+    pass : '{password}',
     debug : true
 };
